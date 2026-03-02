@@ -1,0 +1,114 @@
+{
+  "SPEAKER": {
+    "TALK_ROLE_PLAYER": {
+      "CHS": "主角",
+      "EN": "Traveler"
+    },
+    "TALK_ROLE_MATE_AVATAR": {
+      "CHS": "反主",
+      "EN": "Twin"
+    },
+    "REALNAME_ID_1": {
+      "CHS": "流浪者",
+      "EN": "Wanderer"
+    },
+    "REALNAME_ID_2": {
+      "CHS": "小家伙",
+      "EN": "Little Guy"
+    }
+  },
+  "QUERY": {
+    "TITLE": {
+      "CHS": "搜索对话",
+      "EN": "Query Dialogues"
+    },
+    "SPEAKER": {
+      "CHS": "人物",
+      "EN": "Speaker"
+    },
+    "SPEAKER_PLACEHOLDER": {
+      "CHS": "名字或称号",
+      "EN": "Name or Title"
+    },
+    "CONTENT": {
+      "CHS": "内容",
+      "EN": "Content"
+    },
+    "REGEX": {
+      "CHS": "正则",
+      "EN": "Regex"
+    },
+    "SEARCH": {
+      "CHS": "搜索",
+      "EN": "Search"
+    },
+    "NEW": {
+      "CHS": "仅新增",
+      "EN": "New Only"
+    }
+  },
+  "TIPS": {
+    "TIPS": {
+      "CHS": "提示",
+      "EN": "Tips"
+    },
+    "SPEAKER": {
+      "CHS": "特殊人名",
+      "EN": "Special Speakers"
+    },
+    "LIMITATION": {
+      "CHS": "已知问题",
+      "EN": "Known Limitations"
+    },
+    "LIMITATION1": {
+      "CHS": "由于目前仅使用编号排序, 对话顺序可能不完全正确.",
+      "EN": "Lines may be out of order due to naive numerical ordering."
+    },
+    "LIMITATION2": {
+      "CHS": "邀约任务暂未完全解析.",
+      "EN": "Hangout Events are not yet fully parsed."
+    }
+  },
+  "RESULT": {
+    "EXPAND_ID": {
+      "CHS": "展开 id 范围",
+      "EN": "Expand id range"
+    },
+    "EXPAND_TALK": {
+      "CHS": "展开完整对话",
+      "EN": "Expand full talk"
+    },
+    "EXPAND_QUEST": {
+      "CHS": "展开完整任务",
+      "EN": "Expand full quest"
+    }
+  },
+  "ALERT": {
+    "NONE": {
+      "CHS": "没有结果.",
+      "EN": "No results found."
+    },
+    "SUCCESS": {
+      "CHS": "找到 {} 条结果.",
+      "EN": "Found {} results."
+    },
+    "OVERFLOW": {
+      "CHS": "结果过多, 返回共 {1} 条中的前 {0} 条.",
+      "EN": "Too many results, returning the first {0} of {1}."
+    },
+    "EMPTY": {
+      "CHS": "请求为空.",
+      "EN": "Empty request."
+    }
+  },
+  "PAGE": {
+    "FOOTER": {
+      "CHS": "HomoDGCat 网站与妮可少女无关且独立于 homdgcat.wiki.",
+      "EN": "The HomoDGCat website is not affiliated with HomDGCat and is independent from homdgcat.wiki."
+    },
+    "USE_LANG": {
+      "CHS": "简体中文",
+      "EN": "English"
+    }
+  }
+}
