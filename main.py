@@ -167,6 +167,8 @@ def get_home(lang: str | None):
         ),
         HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
         Meta(name="robots", content="noindex, nofollow"),
+        Meta(property="og:title", content="HomoDGCat"),
+        Meta(property="og:description", content="A Genshin Leakflow Project"),
     )
 
 
