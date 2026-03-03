@@ -67,7 +67,7 @@ def get_home(lang: str | None):
     if lang not in LANGS:
         if (lang_upper := lang.upper()) in LANGS:
             return Redirect(f"/{lang_upper}")
-        return Redirect(f"/{DEFAULT_LANG}")
+        raise HTTPException(status_code=404)
     return (
         Title(TEXT["QUERY"]["TITLE"][lang]),
         NavBar(
