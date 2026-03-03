@@ -166,6 +166,7 @@ def get_home(lang: str | None):
             cols_max=1,
         ),
         HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
+        Meta(name="robots", content="noindex, nofollow"),
     )
 
 
