@@ -13,6 +13,7 @@ CACHE_MAX_AGE = 600
 Langs = str_enum("Langs", *os.environ["LANGS"].split(","))
 
 TALK_DATA_DIR = os.environ["TALK_DATA_DIR"]
+CURR_VER = os.environ["CURR_VER"]
 
 app = FastHTML(hdrs=Theme.blue.headers())
 
@@ -85,6 +86,7 @@ def get_home(lang: str | None):
         ),
         DivCentered(
             H1(TEXT["QUERY"]["TITLE"][lang]),
+            P(f"{TEXT['PAGE']['CURR_VER'][lang]}: {CURR_VER}", cls=TextT.muted),
             Form(
                 Grid(
                     LabelInput(

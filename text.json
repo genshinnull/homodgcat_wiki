@@ -109,6 +109,10 @@
     "USE_LANG": {
       "CHS": "简体中文",
       "EN": "English"
+    },
+    "CURR_VER": {
+      "CHS": "当前数据版本",
+      "EN": "Current data version"
     }
   }
 }
