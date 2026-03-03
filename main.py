@@ -10,9 +10,7 @@ from monsterui.all import *
 QUERY_MAX_RESULTS = 1000
 CACHE_MAX_AGE = 600
 
-LANGS = os.environ["LANGS"].split(",")
-LangRoutes = str_enum("LangRoutes", *LANGS)
-DEFAULT_LANG = os.environ["DEFAULT_LANG"]
+Langs = str_enum("Langs", *os.environ["LANGS"].split(","))
 
 TALK_DATA_DIR = os.environ["TALK_DATA_DIR"]
 
@@ -22,7 +20,7 @@ with open("text.json") as f:
     TEXT = json.loads(f.read())
 
 talk_data = {}
-for lang in LANGS:
+for lang in Langs:
     talk_data_path = (
         f"{TALK_DATA_DIR}/GI_Talk_{lang}.parquet"
         if TALK_DATA_DIR.startswith("http")
@@ -63,9 +61,9 @@ for lang in LANGS:
 @functools.cache
 def get_home(lang: str | None):
     if not lang:
-        return Redirect(f"/{DEFAULT_LANG}")
-    if lang not in LANGS:
-        if (lang_upper := lang.upper()) in LANGS:
+        return Redirect(f"/{list(Langs)[0]}")
+    if lang not in Langs:
+        if (lang_upper := lang.upper()) in Langs:
             return Redirect(f"/{lang_upper}")
         raise HTTPException(status_code=404)
     return (
@@ -73,7 +71,7 @@ def get_home(lang: str | None):
         NavBar(
             *[
                 A(TEXT["PAGE"]["USE_LANG"][use_lang], href=f"/{use_lang.upper()}")
-                for use_lang in LANGS
+                for use_lang in Langs
             ],
             brand=A(
                 DivCentered(
@@ -175,7 +173,7 @@ def get_home(lang: str | None):
 @app.route("/{lang}/query_keyword", methods="GET")
 @functools.lru_cache
 def query_keyword(
-    lang: LangRoutes, speaker: str, content: str, new: bool = False, regex: bool = False
+    lang: Langs, speaker: str, content: str, new: bool = False, regex: bool = False
 ):
     if speaker or content:
         query_lf = talk_data[lang]
@@ -242,7 +240,7 @@ def query_keyword(
 @app.route("/{lang}/query_collection", methods="GET")
 @functools.lru_cache
 def query_collection(
-    lang: LangRoutes,
+    lang: Langs,
     id: int | None = None,
     talkId: int | None = None,
     questId: int | None = None,
@@ -319,7 +317,7 @@ def BaseDialog(
 
 
 def CollectionQueryTrigger(
-    lang: LangRoutes,
+    lang: Langs,
     i: int,
     id: int | None = None,
     talkId: int | None = None,
@@ -371,7 +369,7 @@ def CollectionQueryTrigger(
     )
 
 
-def KeywordQueryResults(lang: LangRoutes, dialogs: list[dict]):
+def KeywordQueryResults(lang: Langs, dialogs: list[dict]):
     results = []
     for i, dialog in enumerate(dialogs):
         talk_collection_names = []
