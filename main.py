@@ -1,33 +1,32 @@
 import functools
 import json
 import os
-import re
 
 import polars as pl
 from fasthtml.common import *
 from monsterui.all import *
 
-QUERY_MAX_RESULTS = 1000
-CACHE_MAX_AGE = 600
-
-Langs = str_enum("Langs", *os.environ["LANGS"].split(","))
+import alert
+import home
+import query_dialog
 
 TALK_DATA_DIR = os.environ["TALK_DATA_DIR"]
 CURR_VER = os.environ["CURR_VER"]
-
-app = FastHTML(hdrs=Theme.blue.headers())
+MAX_RESULTS = 1000
+CACHE_MAX_AGE = 600
+Langs = str_enum("Langs", *os.environ["LANGS"].split(","))
 
 with open("localization.json") as f:
     UI = json.loads(f.read())
 
-talk_data = {}
+TALK_DATA = {}
 for lang in Langs:
     talk_data_path = (
         f"{TALK_DATA_DIR}/GI_Talk_{lang}.parquet"
         if TALK_DATA_DIR.startswith("http")
         else Path(TALK_DATA_DIR) / f"GI_Talk_{lang}.parquet"
     )
-    talk_data[lang] = (
+    TALK_DATA[lang] = (
         pl.read_parquet(talk_data_path)
         .with_columns(
             talkRoleIdName=pl.when(pl.col.talkRoleType == "TALK_ROLE_PLAYER")
@@ -57,6 +56,8 @@ for lang in Langs:
         .lazy()
     )
 
+app = FastHTML(hdrs=Theme.blue.headers())
+
 
 @app.route("/{lang}", methods="GET")
 @functools.cache
@@ -68,107 +69,8 @@ def get_home(lang: str | None):
             return Redirect(f"/{lang_upper}")
         raise HTTPException(status_code=404)
     return (
-        Title(UI["QUERY"]["TITLE"][lang]),
-        NavBar(
-            *[
-                A(UI["PAGE"]["USE_LANG"][use_lang], href=f"/{use_lang.upper()}")
-                for use_lang in Langs
-            ],
-            brand=A(
-                DivCentered(
-                    H4("HomoDGCat"),
-                    P("A Genshin Leakflow Project", cls=TextT.muted),
-                    cls="",
-                ),
-                href="https://t.me/GenshinLeakflow",
-                target="_blank",
-            ),
-        ),
-        DivCentered(
-            H1(UI["QUERY"]["TITLE"][lang]),
-            P(f"{UI['PAGE']['CURR_VER'][lang]}: {CURR_VER}", cls=TextT.muted),
-            Form(
-                Grid(
-                    LabelInput(
-                        UI["QUERY"]["SPEAKER"][lang],
-                        placeholder=UI["QUERY"]["SPEAKER_PLACEHOLDER"][lang],
-                        id="speaker",
-                        type="search",
-                    ),
-                    LabelInput(
-                        UI["QUERY"]["CONTENT"][lang], id="content", type="search"
-                    ),
-                ),
-                DivCentered(
-                    DivHStacked(
-                        Button(
-                            DivHStacked(
-                                UkIcon("search"),
-                                P(UI["QUERY"]["SEARCH"][lang]),
-                                cls="space-x-2",
-                            ),
-                            cls=ButtonT.primary,
-                            hx_indicator="#query-keyword-loading",
-                        ),
-                        LabelCheckboxX(UI["QUERY"]["NEW"][lang], id="new"),
-                        LabelCheckboxX(UI["QUERY"]["REGEX"][lang], id="regex"),
-                    ),
-                    Loading(htmx_indicator=True, id="query-keyword-loading"),
-                ),
-                hx_get=f"/{lang}/q/dialog_keyword",
-                hx_target="#query-keyword-result",
-            ),
-            Grid(
-                Div(
-                    H4(UI["TIPS"]["TIPS"][lang]),
-                    Accordion(
-                        AccordionItem(
-                            UI["TIPS"]["SPEAKER"][lang],
-                            Ul(
-                                Li(
-                                    Code("TALK_ROLE_PLAYER"),
-                                    " -> " + UI["SPEAKER"]["TALK_ROLE_PLAYER"][lang],
-                                ),
-                                Li(
-                                    Code("TALK_ROLE_MATE_AVATAR"),
-                                    " -> "
-                                    + UI["SPEAKER"]["TALK_ROLE_MATE_AVATAR"][lang],
-                                ),
-                                Li(
-                                    Code("{REALNAME[ID(1)]}"),
-                                    " -> " + UI["SPEAKER"]["REALNAME_ID_1"][lang],
-                                ),
-                                Li(
-                                    Code("{REALNAME[ID(2)]}"),
-                                    " -> " + UI["SPEAKER"]["REALNAME_ID_2"][lang],
-                                ),
-                                cls=ListT.disc,
-                            ),
-                        ),
-                        AccordionItem(
-                            UI["TIPS"]["LIMITATION"][lang],
-                            Ul(
-                                Li(UI["TIPS"]["LIMITATION1"][lang]),
-                                Li(UI["TIPS"]["LIMITATION2"][lang]),
-                                cls=ListT.disc,
-                            ),
-                        ),
-                    ),
-                ),
-                id="query-keyword-result",
-                cls="w-full md:max-w-screen-md gap-3",
-            ),
-            P(
-                UI["PAGE"]["FOOTER"][lang],
-                cls=["relative bottom-0", TextT.muted, TextT.xs],
-            ),
-            cls="m-5 gap-5",
-            cols_max=1,
-        ),
+        *home.build(lang, UI, list(Langs), CURR_VER),
         HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
-        Meta(name="robots", content="noindex, nofollow"),
-        Meta(property="og:title", content="HomoDGCat"),
-        Meta(property="og:description", content="A Genshin Leakflow Project"),
     )
 
 
@@ -177,66 +79,68 @@ def get_home(lang: str | None):
 def query_dialog_keyword(
     lang: Langs, speaker: str, content: str, new: bool = False, regex: bool = False
 ):
-    if speaker or content:
-        query_lf = talk_data[lang]
-        if new:
-            query_lf = query_lf.filter(pl.col.new)
-        if speaker:
-            if regex:
-                query_lf = query_lf.filter(
-                    pl.col.talkRoleIdName.str.contains(speaker)
-                    | (pl.col.talkRoleName.str.contains(speaker))
-                    | (pl.col.talkTitle.str.contains(speaker))
-                )
-            else:
-                speaker = speaker.lower()
-                query_lf = query_lf.filter(
-                    (pl.col.talkRoleIdNameLower.str.contains(speaker, literal=True))
-                    | (pl.col.talkRoleNameLower.str.contains(speaker, literal=True))
-                    | (pl.col.talkTitleLower.str.contains(speaker, literal=True))
-                )
-        if content:
-            if regex:
-                query_lf = query_lf.filter(pl.col.talkContent.str.contains(content))
-            else:
-                content = content.lower()
-                query_lf = query_lf.filter(
-                    pl.col.talkContentLower.str.contains(content, literal=True)
-                )
-        try:
-            query_df = query_lf.collect()
-            assert isinstance(query_df, pl.DataFrame)
-            result_len = len(query_df)
-            if result_len == 0:
-                alert_icon = "triangle-alert"
-                alert_msg = UI["ALERT"]["NONE"][lang]
-                alert_cls = AlertT.error
-            elif result_len < QUERY_MAX_RESULTS:
-                alert_icon = "check"
-                alert_msg = UI["ALERT"]["SUCCESS"][lang].format(result_len)
-                alert_cls = AlertT.success
-            else:
-                alert_icon = "triangle-alert"
-                alert_msg = UI["ALERT"]["OVERFLOW"][lang].format(
-                    QUERY_MAX_RESULTS, result_len
-                )
-                alert_cls = AlertT.warning
-                query_df = query_df.limit(QUERY_MAX_RESULTS)
-            if alert_cls != AlertT.error:
-                return (
-                    Alert(DivHStacked(UkIcon(alert_icon), P(alert_msg)), cls=alert_cls),
-                    KeywordQueryResults(lang, query_df.to_dicts()),
-                    HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
-                )
-        except pl.exceptions.ComputeError as e:
-            alert_icon = "triangle-alert"
-            alert_msg = str(e)
-            alert_cls = AlertT.error
+    if not speaker and not content:
+        return (
+            alert.build("error", UI["ALERT"]["EMPTY"][lang]),
+            HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
+        )
+    query_lf = TALK_DATA[lang]
+    assert isinstance(query_lf, pl.LazyFrame)
+    if new:
+        query_lf = query_lf.filter(pl.col.new)
+    if speaker:
+        if regex:
+            query_lf = query_lf.filter(
+                pl.col.talkRoleIdName.str.contains(speaker)
+                | (pl.col.talkRoleName.str.contains(speaker))
+                | (pl.col.talkTitle.str.contains(speaker))
+            )
+        else:
+            speaker = speaker.lower()
+            query_lf = query_lf.filter(
+                (pl.col.talkRoleIdNameLower.str.contains(speaker, literal=True))
+                | (pl.col.talkRoleNameLower.str.contains(speaker, literal=True))
+                | (pl.col.talkTitleLower.str.contains(speaker, literal=True))
+            )
+    if content:
+        if regex:
+            query_lf = query_lf.filter(pl.col.talkContent.str.contains(content))
+        else:
+            content = content.lower()
+            query_lf = query_lf.filter(
+                pl.col.talkContentLower.str.contains(content, literal=True)
+            )
+    try:
+        qeury_df = query_lf.collect()
+    except pl.exceptions.ComputeError as e:
+        return (
+            alert.build("error", str(e)),
+            HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
+        )
+    assert isinstance(qeury_df, pl.DataFrame)
+    result_len = len(qeury_df)
+    if result_len == 0:
+        return (
+            alert.build("error", UI["ALERT"]["NONE"][lang]),
+            HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
+        )
+    elif result_len < MAX_RESULTS:
+        return (
+            alert.build("success", UI["ALERT"]["SUCCESS"][lang].format(result_len)),
+            query_dialog.build_keyword_result(qeury_df.to_dicts(), lang, UI),
+            HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
+        )
     else:
-        alert_icon = "triangle-alert"
-        alert_msg = UI["ALERT"]["EMPTY"][lang]
-        alert_cls = AlertT.error
-    return Alert(DivHStacked(UkIcon(alert_icon), P(alert_msg)), cls=alert_cls)
+        return (
+            alert.build(
+                "warning",
+                UI["ALERT"]["OVERFLOW"][lang].format(MAX_RESULTS, result_len),
+            ),
+            query_dialog.build_keyword_result(
+                qeury_df.limit(MAX_RESULTS).to_dicts(), lang, UI
+            ),
+            HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
+        )
 
 
 @app.route("/{lang}/q/dialog_collection", methods="GET")
@@ -247,7 +151,8 @@ def query_dialog_collection(
     talkId: int | None = None,
     questId: int | None = None,
 ):
-    query_lf = talk_data[lang]
+    query_lf = TALK_DATA[lang]
+    assert isinstance(query_lf, pl.LazyFrame)
     if id:
         query_lf = query_lf.filter(pl.col.id.is_between(id - 100, id + 100))
     elif talkId:
@@ -258,176 +163,11 @@ def query_dialog_collection(
         return Response(status_code=400)
     query_df = query_lf.collect()
     assert isinstance(query_df, pl.DataFrame)
-    results = []
-    talks = query_df.rows_by_key("talkId", named=True)
-    for talk in list(talks.values()):
-        talk_dialogs = []
-        for dialog in talk:
-            talk_dialogs.append(
-                Li(
-                    *BaseDialog(
-                        dialog["id"],
-                        dialog["talkRoleIdName"],
-                        dialog["talkRoleName"],
-                        dialog["talkTitle"],
-                        dialog["talkContent"],
-                        dialog["talkRoleType"],
-                        dialog["type"],
-                    )
-                )
-            )
-        results.append(Ul(*talk_dialogs, cls=ListT.divider))
     return (
-        Ul(
-            *results,
-            cls=ListT.striped,
+        query_dialog.build_collection_result(
+            query_df.rows_by_key("talkId", named=True)
         ),
         HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
-    )
-
-
-def BaseDialog(
-    id: int,
-    talkRoleIdName: str,
-    talkRoleName: str,
-    talkTitle: str,
-    talkContent: str,
-    talkRoleType: str,
-    type: str,
-):
-    if talkRoleName:
-        if talkRoleIdName:
-            if talkRoleIdName != talkRoleName:
-                talkRoleIdName += " -> " + talkRoleName
-        else:
-            talkRoleIdName = talkRoleName
-    talk_speaker = []
-    if talkRoleIdName:
-        talk_speaker.append(P(talkRoleIdName, cls=TextT.bold))
-    if talkTitle:
-        talk_speaker.append(P(talkTitle, cls=(TextT.muted, TextT.xs)))
-    return (
-        DivHStacked(P(id), P(type, cls=TextT.muted), cls=[TextT.xs, "space-x-4"]),
-        DivHStacked(
-            DivCentered(*talk_speaker, cls="") if talk_speaker else None,
-            P(talkRoleType, cls=TextT.muted),
-        ),
-        P(re.sub(r"\\n", "\n", talkContent), cls="whitespace-pre-line")
-        if talkContent
-        else None,
-    )
-
-
-def CollectionQueryTrigger(
-    lang: Langs,
-    i: int,
-    id: int | None = None,
-    talkId: int | None = None,
-    questId: int | None = None,
-):
-    if id:
-        suffix = "-id"
-        link_title = UI["RESULT"]["EXPAND_ID"][lang] + f" (id={id}±100)"
-        hx_vals = {"id": id}
-        modal_title = f"IDs {id - 100} - {id + 100}"
-    elif talkId:
-        suffix = "-talkId"
-        link_title = UI["RESULT"]["EXPAND_TALK"][lang] + f" (talkId={talkId})"
-        hx_vals = {"talkId": talkId}
-        modal_title = f"TalkID {talkId}"
-    elif questId:
-        suffix = "-questId"
-        link_title = UI["RESULT"]["EXPAND_QUEST"][lang] + f" (questId={questId})"
-        hx_vals = {"questId": questId}
-        modal_title = f"QuestID {questId}"
-    modal = f"modal-{i}{suffix}"
-    replace = f"replace-{i}{suffix}"
-    return Li(
-        A(
-            link_title,
-            data_uk_toggle=f"#{modal}",
-            hx_get=f"/{lang}/q/dialog_collection",
-            hx_vals=hx_vals,
-            hx_target=f"#{replace}",
-            hx_indicator="#query-collection-loading",
-        ),
-        Modal(
-            ModalTitle(modal_title),
-            DivCentered(
-                Loading(
-                    htmx_indicator=True,
-                    id="query-collection-loading",
-                )
-            ),
-            Div(id=replace),
-            footer=ModalCloseButton(
-                cls=[
-                    "absolute top-3 right-3",
-                    ButtonT.destructive,
-                ]
-            ),
-            id=modal,
-        ),
-    )
-
-
-def KeywordQueryResults(lang: Langs, dialogs: list[dict]):
-    results = []
-    for i, dialog in enumerate(dialogs):
-        talk_collection_names = []
-        chapter = None
-        if chapterTitle := dialog["chapterTitle"]:
-            if chapterNum := dialog["chapterNum"]:
-                chapter = ": ".join([chapterNum, chapterTitle])
-            else:
-                chapter = chapterTitle
-        for collection_name in [
-            dialog["questIdName"],
-            dialog["activityIdName"],
-            chapter,
-        ]:
-            if collection_name:
-                talk_collection_names.append(collection_name)
-        if talk_collection_names:
-            talk_collection_names = " - ".join(talk_collection_names)
-        talk_collection_triggers = [
-            CollectionQueryTrigger(lang=lang, i=i, id=dialog["id"])
-        ]
-        if talkId := dialog["talkId"]:
-            talk_collection_triggers.append(
-                CollectionQueryTrigger(lang=lang, i=i, talkId=talkId)
-            )
-        if questId := dialog["questId"]:
-            talk_collection_triggers.append(
-                CollectionQueryTrigger(lang=lang, i=i, questId=questId)
-            )
-        results.append(
-            Li(
-                DivFullySpaced(
-                    Div(
-                        *BaseDialog(
-                            dialog["id"],
-                            dialog["talkRoleIdName"],
-                            dialog["talkRoleName"],
-                            dialog["talkTitle"],
-                            dialog["talkContent"],
-                            dialog["talkRoleType"],
-                            dialog["type"],
-                        ),
-                        P(talk_collection_names, cls=[TextT.muted, TextT.xs])
-                        if talk_collection_names
-                        else None,
-                    ),
-                    Div(
-                        A(UkIcon("circle-chevron-down"), cls=AT.primary),
-                        DropDownNavContainer(*talk_collection_triggers),
-                    ),
-                )
-            ),
-        )
-    return Ul(
-        *results,
-        cls=ListT.divider,
     )
 
 
