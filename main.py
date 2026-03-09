@@ -115,7 +115,7 @@ def get_home(lang: str | None):
                     ),
                     Loading(htmx_indicator=True, id="query-keyword-loading"),
                 ),
-                hx_get=f"/{lang}/query_keyword",
+                hx_get=f"/{lang}/q/dialog_keyword",
                 hx_target="#query-keyword-result",
             ),
             Grid(
@@ -172,9 +172,9 @@ def get_home(lang: str | None):
     )
 
 
-@app.route("/{lang}/query_keyword", methods="GET")
+@app.route("/{lang}/q/dialog_keyword", methods="GET")
 @functools.lru_cache
-def query_keyword(
+def query_dialog_keyword(
     lang: Langs, speaker: str, content: str, new: bool = False, regex: bool = False
 ):
     if speaker or content:
@@ -239,9 +239,9 @@ def query_keyword(
     return Alert(DivHStacked(UkIcon(alert_icon), P(alert_msg)), cls=alert_cls)
 
 
-@app.route("/{lang}/query_collection", methods="GET")
+@app.route("/{lang}/q/dialog_collection", methods="GET")
 @functools.lru_cache
-def query_collection(
+def query_dialog_collection(
     lang: Langs,
     id: int | None = None,
     talkId: int | None = None,
@@ -346,7 +346,7 @@ def CollectionQueryTrigger(
         A(
             link_title,
             data_uk_toggle=f"#{modal}",
-            hx_get=f"/{lang}/query_collection",
+            hx_get=f"/{lang}/q/dialog_collection",
             hx_vals=hx_vals,
             hx_target=f"#{replace}",
             hx_indicator="#query-collection-loading",
