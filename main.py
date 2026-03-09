@@ -19,6 +19,8 @@ Langs = str_enum("Langs", *os.environ["LANGS"].split(","))
 with open("localization.json") as f:
     UI = json.loads(f.read())
 
+pl.Config.set_engine_affinity("streaming")
+
 TALK_DATA = {}
 for lang in Langs:
     talk_data_path = (
