@@ -17,8 +17,8 @@ CURR_VER = os.environ["CURR_VER"]
 
 app = FastHTML(hdrs=Theme.blue.headers())
 
-with open("text.json") as f:
-    TEXT = json.loads(f.read())
+with open("localization.json") as f:
+    UI = json.loads(f.read())
 
 talk_data = {}
 for lang in Langs:
@@ -31,21 +31,21 @@ for lang in Langs:
         pl.read_parquet(talk_data_path)
         .with_columns(
             talkRoleIdName=pl.when(pl.col.talkRoleType == "TALK_ROLE_PLAYER")
-            .then(pl.lit(TEXT["SPEAKER"]["TALK_ROLE_PLAYER"][lang]))
+            .then(pl.lit(UI["SPEAKER"]["TALK_ROLE_PLAYER"][lang]))
             .when(pl.col.talkRoleType == "TALK_ROLE_MATE_AVATAR")
-            .then(pl.lit(TEXT["SPEAKER"]["TALK_ROLE_MATE_AVATAR"][lang]))
+            .then(pl.lit(UI["SPEAKER"]["TALK_ROLE_MATE_AVATAR"][lang]))
             .when(
                 pl.col.talkRoleIdName.str.contains(
                     r"^\#\{REALNAME\[ID\(1\)\|\w+\(\w+\)\]\}$"
                 )
             )
-            .then(pl.lit(TEXT["SPEAKER"]["REALNAME_ID_1"][lang]))
+            .then(pl.lit(UI["SPEAKER"]["REALNAME_ID_1"][lang]))
             .when(
                 pl.col.talkRoleIdName.str.contains(
                     r"^\#\{REALNAME\[ID\(2\)\|\w+\(\w+\)\]\}$"
                 )
             )
-            .then(pl.lit(TEXT["SPEAKER"]["REALNAME_ID_2"][lang]))
+            .then(pl.lit(UI["SPEAKER"]["REALNAME_ID_2"][lang]))
             .otherwise(pl.col.talkRoleIdName)
         )
         .with_columns(
@@ -68,10 +68,10 @@ def get_home(lang: str | None):
             return Redirect(f"/{lang_upper}")
         raise HTTPException(status_code=404)
     return (
-        Title(TEXT["QUERY"]["TITLE"][lang]),
+        Title(UI["QUERY"]["TITLE"][lang]),
         NavBar(
             *[
-                A(TEXT["PAGE"]["USE_LANG"][use_lang], href=f"/{use_lang.upper()}")
+                A(UI["PAGE"]["USE_LANG"][use_lang], href=f"/{use_lang.upper()}")
                 for use_lang in Langs
             ],
             brand=A(
@@ -85,18 +85,18 @@ def get_home(lang: str | None):
             ),
         ),
         DivCentered(
-            H1(TEXT["QUERY"]["TITLE"][lang]),
-            P(f"{TEXT['PAGE']['CURR_VER'][lang]}: {CURR_VER}", cls=TextT.muted),
+            H1(UI["QUERY"]["TITLE"][lang]),
+            P(f"{UI['PAGE']['CURR_VER'][lang]}: {CURR_VER}", cls=TextT.muted),
             Form(
                 Grid(
                     LabelInput(
-                        TEXT["QUERY"]["SPEAKER"][lang],
-                        placeholder=TEXT["QUERY"]["SPEAKER_PLACEHOLDER"][lang],
+                        UI["QUERY"]["SPEAKER"][lang],
+                        placeholder=UI["QUERY"]["SPEAKER_PLACEHOLDER"][lang],
                         id="speaker",
                         type="search",
                     ),
                     LabelInput(
-                        TEXT["QUERY"]["CONTENT"][lang], id="content", type="search"
+                        UI["QUERY"]["CONTENT"][lang], id="content", type="search"
                     ),
                 ),
                 DivCentered(
@@ -104,14 +104,14 @@ def get_home(lang: str | None):
                         Button(
                             DivHStacked(
                                 UkIcon("search"),
-                                P(TEXT["QUERY"]["SEARCH"][lang]),
+                                P(UI["QUERY"]["SEARCH"][lang]),
                                 cls="space-x-2",
                             ),
                             cls=ButtonT.primary,
                             hx_indicator="#query-keyword-loading",
                         ),
-                        LabelCheckboxX(TEXT["QUERY"]["NEW"][lang], id="new"),
-                        LabelCheckboxX(TEXT["QUERY"]["REGEX"][lang], id="regex"),
+                        LabelCheckboxX(UI["QUERY"]["NEW"][lang], id="new"),
+                        LabelCheckboxX(UI["QUERY"]["REGEX"][lang], id="regex"),
                     ),
                     Loading(htmx_indicator=True, id="query-keyword-loading"),
                 ),
@@ -120,36 +120,36 @@ def get_home(lang: str | None):
             ),
             Grid(
                 Div(
-                    H4(TEXT["TIPS"]["TIPS"][lang]),
+                    H4(UI["TIPS"]["TIPS"][lang]),
                     Accordion(
                         AccordionItem(
-                            TEXT["TIPS"]["SPEAKER"][lang],
+                            UI["TIPS"]["SPEAKER"][lang],
                             Ul(
                                 Li(
                                     Code("TALK_ROLE_PLAYER"),
-                                    " -> " + TEXT["SPEAKER"]["TALK_ROLE_PLAYER"][lang],
+                                    " -> " + UI["SPEAKER"]["TALK_ROLE_PLAYER"][lang],
                                 ),
                                 Li(
                                     Code("TALK_ROLE_MATE_AVATAR"),
                                     " -> "
-                                    + TEXT["SPEAKER"]["TALK_ROLE_MATE_AVATAR"][lang],
+                                    + UI["SPEAKER"]["TALK_ROLE_MATE_AVATAR"][lang],
                                 ),
                                 Li(
                                     Code("{REALNAME[ID(1)]}"),
-                                    " -> " + TEXT["SPEAKER"]["REALNAME_ID_1"][lang],
+                                    " -> " + UI["SPEAKER"]["REALNAME_ID_1"][lang],
                                 ),
                                 Li(
                                     Code("{REALNAME[ID(2)]}"),
-                                    " -> " + TEXT["SPEAKER"]["REALNAME_ID_2"][lang],
+                                    " -> " + UI["SPEAKER"]["REALNAME_ID_2"][lang],
                                 ),
                                 cls=ListT.disc,
                             ),
                         ),
                         AccordionItem(
-                            TEXT["TIPS"]["LIMITATION"][lang],
+                            UI["TIPS"]["LIMITATION"][lang],
                             Ul(
-                                Li(TEXT["TIPS"]["LIMITATION1"][lang]),
-                                Li(TEXT["TIPS"]["LIMITATION2"][lang]),
+                                Li(UI["TIPS"]["LIMITATION1"][lang]),
+                                Li(UI["TIPS"]["LIMITATION2"][lang]),
                                 cls=ListT.disc,
                             ),
                         ),
@@ -159,7 +159,7 @@ def get_home(lang: str | None):
                 cls="w-full md:max-w-screen-md gap-3",
             ),
             P(
-                TEXT["PAGE"]["FOOTER"][lang],
+                UI["PAGE"]["FOOTER"][lang],
                 cls=["relative bottom-0", TextT.muted, TextT.xs],
             ),
             cls="m-5 gap-5",
@@ -209,15 +209,15 @@ def query_keyword(
             result_len = len(query_df)
             if result_len == 0:
                 alert_icon = "triangle-alert"
-                alert_msg = TEXT["ALERT"]["NONE"][lang]
+                alert_msg = UI["ALERT"]["NONE"][lang]
                 alert_cls = AlertT.error
             elif result_len < QUERY_MAX_RESULTS:
                 alert_icon = "check"
-                alert_msg = TEXT["ALERT"]["SUCCESS"][lang].format(result_len)
+                alert_msg = UI["ALERT"]["SUCCESS"][lang].format(result_len)
                 alert_cls = AlertT.success
             else:
                 alert_icon = "triangle-alert"
-                alert_msg = TEXT["ALERT"]["OVERFLOW"][lang].format(
+                alert_msg = UI["ALERT"]["OVERFLOW"][lang].format(
                     QUERY_MAX_RESULTS, result_len
                 )
                 alert_cls = AlertT.warning
@@ -234,7 +234,7 @@ def query_keyword(
             alert_cls = AlertT.error
     else:
         alert_icon = "triangle-alert"
-        alert_msg = TEXT["ALERT"]["EMPTY"][lang]
+        alert_msg = UI["ALERT"]["EMPTY"][lang]
         alert_cls = AlertT.error
     return Alert(DivHStacked(UkIcon(alert_icon), P(alert_msg)), cls=alert_cls)
 
@@ -327,17 +327,17 @@ def CollectionQueryTrigger(
 ):
     if id:
         suffix = "-id"
-        link_title = TEXT["RESULT"]["EXPAND_ID"][lang] + f" (id={id}±100)"
+        link_title = UI["RESULT"]["EXPAND_ID"][lang] + f" (id={id}±100)"
         hx_vals = {"id": id}
         modal_title = f"IDs {id - 100} - {id + 100}"
     elif talkId:
         suffix = "-talkId"
-        link_title = TEXT["RESULT"]["EXPAND_TALK"][lang] + f" (talkId={talkId})"
+        link_title = UI["RESULT"]["EXPAND_TALK"][lang] + f" (talkId={talkId})"
         hx_vals = {"talkId": talkId}
         modal_title = f"TalkID {talkId}"
     elif questId:
         suffix = "-questId"
-        link_title = TEXT["RESULT"]["EXPAND_QUEST"][lang] + f" (questId={questId})"
+        link_title = UI["RESULT"]["EXPAND_QUEST"][lang] + f" (questId={questId})"
         hx_vals = {"questId": questId}
         modal_title = f"QuestID {questId}"
     modal = f"modal-{i}{suffix}"
