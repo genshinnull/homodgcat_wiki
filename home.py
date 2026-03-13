@@ -102,6 +102,4 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
             cols_max=1,
         ),
         Meta(name="robots", content="noindex, nofollow"),
-        Meta(property="og:title", content="HomoDGCat"),
-        Meta(property="og:description", content="A Genshin Leakflow Project"),
     )
