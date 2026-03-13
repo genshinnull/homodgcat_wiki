@@ -20,3 +20,4 @@ venv.bak/
 .ruff_cache/
 
 .sesskey
+temp/

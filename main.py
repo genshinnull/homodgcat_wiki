@@ -1,7 +1,9 @@
 import functools
 import json
 import os
+import shutil
 
+import httpx
 import polars as pl
 from fasthtml.common import *
 from monsterui.all import *
@@ -10,7 +12,7 @@ import alert
 import home
 import query_dialog
 
-TALK_DATA_DIR = os.environ["TALK_DATA_DIR"]
+DATA_DIR = os.environ["DATA_DIR"]
 CURR_VER = os.environ["CURR_VER"]
 MAX_RESULTS = 1000
 CACHE_MAX_AGE = 600
@@ -21,15 +23,19 @@ with open("localization.json") as f:
 
 pl.Config.set_engine_affinity("streaming")
 
-TALK_DATA = {}
+if not (effective_data_dir := Path(DATA_DIR)).is_dir():
+    effective_data_dir = Path("temp")
+    shutil.rmtree(effective_data_dir, ignore_errors=True)
+    effective_data_dir.mkdir()
+    for lang in Langs:
+        with open(effective_data_dir / f"GI_Talk_{lang}.parquet", "wb") as f:
+            f.write(httpx.get(f"{DATA_DIR}/GI_Talk_{lang}.parquet").content)
+
+talk_data = {}
 for lang in Langs:
-    talk_data_path = (
-        f"{TALK_DATA_DIR}/GI_Talk_{lang}.parquet"
-        if TALK_DATA_DIR.startswith("http")
-        else Path(TALK_DATA_DIR) / f"GI_Talk_{lang}.parquet"
-    )
-    TALK_DATA[lang] = (
-        pl.read_parquet(talk_data_path)
+    talk_data_path = effective_data_dir / f"GI_Talk_{lang}.parquet"
+    talk_data[lang] = (
+        pl.scan_parquet(talk_data_path)
         .with_columns(
             talkRoleIdName=pl.when(pl.col.talkRoleType == "TALK_ROLE_PLAYER")
             .then(pl.lit(UI["SPEAKER"]["TALK_ROLE_PLAYER"][lang]))
@@ -55,7 +61,6 @@ for lang in Langs:
             talkTitleLower=pl.col.talkTitle.str.to_lowercase(),
             talkContentLower=pl.col.talkContent.str.to_lowercase(),
         )
-        .lazy()
     )
 
 app = FastHTML(hdrs=Theme.blue.headers())
@@ -86,7 +91,7 @@ def query_dialog_keyword(
             alert.build("error", UI["ALERT"]["EMPTY"][lang]),
             HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
         )
-    query_lf = TALK_DATA[lang]
+    query_lf = talk_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if new:
         query_lf = query_lf.filter(pl.col.new)
@@ -113,7 +118,21 @@ def query_dialog_keyword(
                 pl.col.talkContentLower.str.contains(content, literal=True)
             )
     try:
-        qeury_df = query_lf.collect()
+        qeury_df = query_lf.select(
+            "id",
+            "talkRoleIdName",
+            "talkRoleName",
+            "talkTitle",
+            "talkContent",
+            "talkRoleType",
+            "talkId",
+            "questId",
+            "questIdName",
+            "activityIdName",
+            "chapterTitle",
+            "chapterNum",
+            "type",
+        ).collect()
     except pl.exceptions.ComputeError as e:
         return (
             alert.build("error", str(e)),
@@ -153,7 +172,7 @@ def query_dialog_collection(
     talkId: int | None = None,
     questId: int | None = None,
 ):
-    query_lf = TALK_DATA[lang]
+    query_lf = talk_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if id:
         query_lf = query_lf.filter(pl.col.id.is_between(id - 100, id + 100))
@@ -163,7 +182,16 @@ def query_dialog_collection(
         query_lf = query_lf.filter(pl.col.questId == questId)
     else:
         return Response(status_code=400)
-    query_df = query_lf.collect()
+    query_df = query_lf.select(
+        "id",
+        "talkRoleIdName",
+        "talkRoleName",
+        "talkTitle",
+        "talkContent",
+        "talkRoleType",
+        "talkId",
+        "type",
+    ).collect()
     assert isinstance(query_df, pl.DataFrame)
     return (
         query_dialog.build_collection_result(
