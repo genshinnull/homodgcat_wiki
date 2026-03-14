@@ -136,7 +136,7 @@ wheels = [
 ]
 
 [[package]]
-name = "homodgcat-wiki"
+name = "homodgcat_wiki"
 version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
