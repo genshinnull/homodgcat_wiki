@@ -14,8 +14,11 @@ import query_dialog
 
 DATA_DIR = os.environ["DATA_DIR"]
 CURR_VER = os.environ["CURR_VER"]
+CACHE_MAX_AGE = os.environ.get("CACHE_MAX_AGE", None)
+cache_header = HttpHeader(
+    "Cache-Control", f"max-age={CACHE_MAX_AGE}" if CACHE_MAX_AGE else "no-store"
+)
 MAX_RESULTS = 1000
-CACHE_MAX_AGE = 600
 Langs = str_enum("Langs", *os.environ["LANGS"].split(","))
 
 with open("localization.json") as f:
@@ -75,10 +78,7 @@ def get_home(lang: str | None):
         if (lang_upper := lang.upper()) in Langs:
             return Redirect(f"/{lang_upper}")
         raise HTTPException(status_code=404)
-    return (
-        *home.build(lang, UI, list(Langs), CURR_VER),
-        HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
-    )
+    return (*home.build(lang, UI, list(Langs), CURR_VER), cache_header)
 
 
 @app.route("/{lang}/q/dialog_keyword", methods="GET")
@@ -87,10 +87,7 @@ def query_dialog_keyword(
     lang: Langs, speaker: str, content: str, new: bool = False, regex: bool = False
 ):
     if not speaker and not content:
-        return (
-            alert.build("error", UI["ALERT_EMPTY"][lang]),
-            HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
-        )
+        return (alert.build("error", UI["ALERT_EMPTY"][lang]), cache_header)
     query_lf = talk_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if new:
@@ -134,22 +131,16 @@ def query_dialog_keyword(
             "type",
         ).collect()
     except pl.exceptions.ComputeError as e:
-        return (
-            alert.build("error", str(e)),
-            HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
-        )
+        return (alert.build("error", str(e)), cache_header)
     assert isinstance(qeury_df, pl.DataFrame)
     result_len = len(qeury_df)
     if result_len == 0:
-        return (
-            alert.build("error", UI["ALERT_NONE"][lang]),
-            HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
-        )
+        return (alert.build("error", UI["ALERT_NONE"][lang]), cache_header)
     elif result_len < MAX_RESULTS:
         return (
             alert.build("success", UI["ALERT_SUCCESS"][lang].format(result_len)),
             query_dialog.build_keyword_result(qeury_df.to_dicts(), lang, UI),
-            HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
+            cache_header,
         )
     else:
         return (
@@ -160,7 +151,7 @@ def query_dialog_keyword(
             query_dialog.build_keyword_result(
                 qeury_df.limit(MAX_RESULTS).to_dicts(), lang, UI
             ),
-            HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
+            cache_header,
         )
 
 
@@ -197,7 +188,7 @@ def query_dialog_collection(
         query_dialog.build_collection_result(
             query_df.rows_by_key("talkId", named=True)
         ),
-        HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
+        cache_header,
     )
 
 
