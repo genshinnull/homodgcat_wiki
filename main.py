@@ -11,6 +11,7 @@ from monsterui.all import *
 import alert
 import home
 import query_dialog
+import query_text
 
 DATA_DIR = os.environ["DATA_DIR"]
 CURR_VER = os.environ["CURR_VER"]
@@ -64,6 +65,17 @@ for lang in Langs:
             talkTitleLower=pl.col.talkTitle.str.to_lowercase(),
             talkContentLower=pl.col.talkContent.str.to_lowercase(),
         )
+    )
+
+text_data = {}
+for lang in Langs:
+    text_data_path = effective_data_dir / f"GI_Text_{lang}.parquet"
+    text_data[lang] = pl.scan_parquet(text_data_path).with_columns(
+        keyLower=pl.col.key.str.to_lowercase(),
+        valueLower=pl.col.value.str.to_lowercase(),
+        pagedLower=pl.col.Paged.str.to_lowercase(),
+        bookLower=pl.col.Book.str.to_lowercase(),
+        letterLower=pl.col.Letter.str.to_lowercase(),
     )
 
 app = FastHTML(hdrs=Theme.blue.headers())
@@ -189,6 +201,25 @@ def query_dialog_collection(
             query_df.rows_by_key("talkId", named=True)
         ),
         cache_header,
+    )
+
+
+@app.route("/{lang}/q/text", methods="GET")
+@functools.lru_cache
+def query_text_keyword(
+    lang: Langs,
+    key: str,
+    value: str,
+    lang_comp: str,
+    no_textmap: bool = False,
+    no_readable: bool = False,
+    no_subtitle: bool = False,
+    new: bool = False,
+    regex: bool = False,
+    ungrouped: bool = False,
+):
+    return query_text.build(
+        f"{key=}, {value=}, {lang_comp=}, {no_textmap=}, {no_readable=}, {no_subtitle=}, {new=}, {regex=}, {ungrouped=}"
     )
 
 

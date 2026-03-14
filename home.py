@@ -50,11 +50,10 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
                                     type="search",
                                 ),
                             ),
-                            DivCentered(
-                                Grid(
-                                    LabelCheckboxX(ui["QUERY_NEW"][lang], id="new"),
-                                    LabelCheckboxX(ui["QUERY_REGEX"][lang], id="regex"),
-                                ),
+                            P(ui["QUERY_OPTIONS"][lang], cls=TextT.bold),
+                            Grid(
+                                LabelCheckboxX(ui["QUERY_DIALOG_NEW"][lang], id="new"),
+                                LabelCheckboxX(ui["QUERY_REGEX"][lang], id="regex"),
                             ),
                             DivCentered(
                                 Button(
@@ -101,24 +100,21 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
                                         selected_idx=0,
                                     ),
                                     label=ui["QUERY_TEXT_LANG_COMP"][lang],
-                                    id="lang-comp",
+                                    id="lang_comp",
                                 ),
-                                LabelSelect(
-                                    Options("TextMap", "Readable", "Subtitle"),
-                                    label=ui["QUERY_TEXT_EXCLUDE"][lang],
-                                    id="exclude",
-                                    multiple=True,
-                                    placeholder="-",
-                                ),
-                                cols_max=2,
                             ),
-                            DivCentered(
-                                Grid(
-                                    LabelCheckboxX(ui["QUERY_NEW"][lang], id="new"),
-                                    LabelCheckboxX(ui["QUERY_REGEX"][lang], id="regex"),
-                                    LabelCheckboxX(
-                                        ui["QUERY_TEXT_UNGROUPED"][lang], id="ungrouped"
-                                    ),
+                            P(ui["QUERY_EXCLUDE"][lang], cls=TextT.bold),
+                            Grid(
+                                LabelCheckboxX("TextMap", id="no_textmap"),
+                                LabelCheckboxX("Readable", id="no_readable"),
+                                LabelCheckboxX("Subtitle", id="no_subtitle"),
+                            ),
+                            P(ui["QUERY_OPTIONS"][lang], cls=TextT.bold),
+                            Grid(
+                                LabelCheckboxX(ui["QUERY_TEXT_NEW"][lang], id="new"),
+                                LabelCheckboxX(ui["QUERY_REGEX"][lang], id="regex"),
+                                LabelCheckboxX(
+                                    ui["QUERY_TEXT_UNGROUPED"][lang], id="ungrouped"
                                 ),
                             ),
                             DivCentered(

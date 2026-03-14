@@ -35,6 +35,10 @@
     "CHS": "内容",
     "EN": "Content"
   },
+  "QUERY_DIALOG_NEW": {
+    "CHS": "仅新增",
+    "EN": "New Only"
+  },
   "QUERY_DIALOG_SPEAKER": {
     "CHS": "人物",
     "EN": "Speaker"
@@ -43,9 +47,13 @@
     "CHS": "名字或称号",
     "EN": "Name or Title"
   },
-  "QUERY_NEW": {
-    "CHS": "仅新增",
-    "EN": "New Only"
+  "QUERY_EXCLUDE": {
+    "CHS": "排除类型",
+    "EN": "Exclude Types"
+  },
+  "QUERY_OPTIONS": {
+    "CHS": "更多选项",
+    "EN": "More Options"
   },
   "QUERY_REGEX": {
     "CHS": "正则表达式",
@@ -78,6 +86,10 @@
   "QUERY_TEXT_LANG_COMP": {
     "CHS": "对比语言",
     "EN": "Language to Compare"
+  },
+  "QUERY_TEXT_NEW": {
+    "CHS": "仅新增值",
+    "EN": "New Values Only"
   },
   "QUERY_TEXT_UNGROUPED": {
     "CHS": "不合并相同值",
