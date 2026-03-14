@@ -46,17 +46,17 @@ def build_collection_query_trigger(
 ):
     if id:
         suffix = "-id"
-        link_title = ui["RESULT"]["EXPAND_ID"][lang] + f" (id={id}±100)"
+        link_title = ui["RESULT_DIALOG_EXPAND_ID"][lang] + f" (id={id}±100)"
         hx_vals = {"id": id}
         modal_title = f"IDs {id - 100} - {id + 100}"
     elif talkId:
         suffix = "-talkId"
-        link_title = ui["RESULT"]["EXPAND_TALK"][lang] + f" (talkId={talkId})"
+        link_title = ui["RESULT_DIALOG_EXPAND_TALK"][lang] + f" (talkId={talkId})"
         hx_vals = {"talkId": talkId}
         modal_title = f"TalkID {talkId}"
     elif questId:
         suffix = "-questId"
-        link_title = ui["RESULT"]["EXPAND_QUEST"][lang] + f" (questId={questId})"
+        link_title = ui["RESULT_DIALOG_EXPAND_QUEST"][lang] + f" (questId={questId})"
         hx_vals = {"questId": questId}
         modal_title = f"QuestID {questId}"
     modal = f"modal-{i}{suffix}"
@@ -68,14 +68,14 @@ def build_collection_query_trigger(
             hx_get=f"/{lang}/q/dialog_collection",
             hx_vals=hx_vals,
             hx_target=f"#{replace}",
-            hx_indicator="#query-collection-loading",
+            hx_indicator="#q-dialog-collection-loading",
         ),
         Modal(
             ModalTitle(modal_title),
             DivCentered(
                 Loading(
                     htmx_indicator=True,
-                    id="query-collection-loading",
+                    id="q-dialog-collection-loading",
                 )
             ),
             Div(id=replace),

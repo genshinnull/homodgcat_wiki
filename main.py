@@ -38,21 +38,21 @@ for lang in Langs:
         pl.scan_parquet(talk_data_path)
         .with_columns(
             talkRoleIdName=pl.when(pl.col.talkRoleType == "TALK_ROLE_PLAYER")
-            .then(pl.lit(UI["SPEAKER"]["TALK_ROLE_PLAYER"][lang]))
+            .then(pl.lit(UI["SPEAKER_TALK_ROLE_PLAYER"][lang]))
             .when(pl.col.talkRoleType == "TALK_ROLE_MATE_AVATAR")
-            .then(pl.lit(UI["SPEAKER"]["TALK_ROLE_MATE_AVATAR"][lang]))
+            .then(pl.lit(UI["SPEAKER_TALK_ROLE_MATE_AVATAR"][lang]))
             .when(
                 pl.col.talkRoleIdName.str.contains(
                     r"^\#\{REALNAME\[ID\(1\)\|\w+\(\w+\)\]\}$"
                 )
             )
-            .then(pl.lit(UI["SPEAKER"]["REALNAME_ID_1"][lang]))
+            .then(pl.lit(UI["SPEAKER_REALNAME_ID_1"][lang]))
             .when(
                 pl.col.talkRoleIdName.str.contains(
                     r"^\#\{REALNAME\[ID\(2\)\|\w+\(\w+\)\]\}$"
                 )
             )
-            .then(pl.lit(UI["SPEAKER"]["REALNAME_ID_2"][lang]))
+            .then(pl.lit(UI["SPEAKER_REALNAME_ID_2"][lang]))
             .otherwise(pl.col.talkRoleIdName)
         )
         .with_columns(
@@ -88,7 +88,7 @@ def query_dialog_keyword(
 ):
     if not speaker and not content:
         return (
-            alert.build("error", UI["ALERT"]["EMPTY"][lang]),
+            alert.build("error", UI["ALERT_EMPTY"][lang]),
             HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
         )
     query_lf = talk_data[lang]
@@ -142,12 +142,12 @@ def query_dialog_keyword(
     result_len = len(qeury_df)
     if result_len == 0:
         return (
-            alert.build("error", UI["ALERT"]["NONE"][lang]),
+            alert.build("error", UI["ALERT_NONE"][lang]),
             HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
         )
     elif result_len < MAX_RESULTS:
         return (
-            alert.build("success", UI["ALERT"]["SUCCESS"][lang].format(result_len)),
+            alert.build("success", UI["ALERT_SUCCESS"][lang].format(result_len)),
             query_dialog.build_keyword_result(qeury_df.to_dicts(), lang, UI),
             HttpHeader("Cache-Control", f"max-age={CACHE_MAX_AGE}"),
         )
@@ -155,7 +155,7 @@ def query_dialog_keyword(
         return (
             alert.build(
                 "warning",
-                UI["ALERT"]["OVERFLOW"][lang].format(MAX_RESULTS, result_len),
+                UI["ALERT_OVERFLOW"][lang].format(MAX_RESULTS, result_len),
             ),
             query_dialog.build_keyword_result(
                 qeury_df.limit(MAX_RESULTS).to_dicts(), lang, UI

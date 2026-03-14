@@ -3,11 +3,13 @@ from monsterui.all import *
 
 
 def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
+    langs_for_comp = ["-", *langs.copy()]
+    langs_for_comp.remove(lang)
     return (
-        Title(ui["QUERY"]["TITLE"][lang]),
+        Title(ui["PAGE_TITLE"][lang]),
         NavBar(
             *[
-                A(ui["PAGE"]["USE_LANG"][use_lang], href=f"/{use_lang.upper()}")
+                A(ui["PAGE_USE_LANG"][use_lang], href=f"/{use_lang.upper()}")
                 for use_lang in langs
             ],
             brand=A(
@@ -21,81 +23,172 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
             ),
         ),
         DivCentered(
-            H1(ui["QUERY"]["TITLE"][lang]),
-            P(f"{ui['PAGE']['CURR_VER'][lang]}: {curr_ver}", cls=TextT.muted),
-            Form(
-                Grid(
-                    LabelInput(
-                        ui["QUERY"]["SPEAKER"][lang],
-                        placeholder=ui["QUERY"]["SPEAKER_PLACEHOLDER"][lang],
-                        id="speaker",
-                        type="search",
-                    ),
-                    LabelInput(
-                        ui["QUERY"]["CONTENT"][lang], id="content", type="search"
-                    ),
+            H1(ui["PAGE_TITLE"][lang]),
+            P(f"{ui['PAGE_CURR_VER'][lang]}: {curr_ver}", cls=TextT.muted),
+            Container(
+                TabContainer(
+                    Li(A(ui["QUERY_TAB_DIALOG"][lang], href="#")),
+                    Li(A(ui["QUERY_TAB_TEXT"][lang], href="#")),
+                    uk_switcher="connect: #q-tabs",
+                    alt=True,
                 ),
-                DivCentered(
-                    DivHStacked(
-                        Button(
-                            DivHStacked(
-                                UkIcon("search"),
-                                P(ui["QUERY"]["SEARCH"][lang]),
-                                cls="space-x-2",
+                Ul(
+                    Li(
+                        Form(
+                            Grid(
+                                LabelInput(
+                                    ui["QUERY_DIALOG_SPEAKER"][lang],
+                                    placeholder=ui["QUERY_DIALOG_SPEAKER_PLACEHOLDER"][
+                                        lang
+                                    ],
+                                    id="speaker",
+                                    type="search",
+                                ),
+                                LabelInput(
+                                    ui["QUERY_DIALOG_CONTENT"][lang],
+                                    id="content",
+                                    type="search",
+                                ),
                             ),
-                            cls=ButtonT.primary,
-                            hx_indicator="#query-keyword-loading",
+                            DivCentered(
+                                Grid(
+                                    LabelCheckboxX(ui["QUERY_NEW"][lang], id="new"),
+                                    LabelCheckboxX(ui["QUERY_REGEX"][lang], id="regex"),
+                                ),
+                            ),
+                            DivCentered(
+                                Button(
+                                    UkIcon("search"),
+                                    P(ui["QUERY_SEARCH"][lang]),
+                                    cls=[
+                                        "space-x-2",
+                                        ButtonT.primary,
+                                    ],
+                                    hx_indicator="#q-dialog-keyword-loading",
+                                ),
+                            ),
+                            DivCentered(
+                                Loading(
+                                    htmx_indicator=True,
+                                    id="q-dialog-keyword-loading",
+                                )
+                            ),
+                            cls="space-y-5",
+                            hx_get=f"/{lang}/q/dialog_keyword",
+                            hx_target="#q-main-result",
                         ),
-                        LabelCheckboxX(ui["QUERY"]["NEW"][lang], id="new"),
-                        LabelCheckboxX(ui["QUERY"]["REGEX"][lang], id="regex"),
                     ),
-                    Loading(htmx_indicator=True, id="query-keyword-loading"),
+                    Li(
+                        Form(
+                            Grid(
+                                LabelInput(
+                                    ui["QUERY_TEXT_KEY"][lang],
+                                    placeholder=ui["QUERY_TEXT_KEY_PLACEHOLDER"][lang],
+                                    id="key",
+                                    type="search",
+                                ),
+                                LabelInput(
+                                    ui["QUERY_TEXT_VALUE"][lang],
+                                    id="value",
+                                    placeholder=ui["QUERY_TEXT_VALUE_PLACEHOLDER"][
+                                        lang
+                                    ],
+                                    type="search",
+                                ),
+                                LabelSelect(
+                                    Options(
+                                        *langs_for_comp,
+                                        selected_idx=0,
+                                    ),
+                                    label=ui["QUERY_TEXT_LANG_COMP"][lang],
+                                    id="lang-comp",
+                                ),
+                                LabelSelect(
+                                    Options("TextMap", "Readable", "Subtitle"),
+                                    label=ui["QUERY_TEXT_EXCLUDE"][lang],
+                                    id="exclude",
+                                    multiple=True,
+                                    placeholder="-",
+                                ),
+                                cols_max=2,
+                            ),
+                            DivCentered(
+                                Grid(
+                                    LabelCheckboxX(ui["QUERY_NEW"][lang], id="new"),
+                                    LabelCheckboxX(ui["QUERY_REGEX"][lang], id="regex"),
+                                    LabelCheckboxX(
+                                        ui["QUERY_TEXT_UNGROUPED"][lang], id="ungrouped"
+                                    ),
+                                ),
+                            ),
+                            DivCentered(
+                                Button(
+                                    UkIcon("search"),
+                                    P(ui["QUERY_SEARCH"][lang]),
+                                    cls=[
+                                        "space-x-2",
+                                        ButtonT.primary,
+                                    ],
+                                    hx_indicator="#q-text-loading",
+                                ),
+                            ),
+                            DivCentered(
+                                Loading(
+                                    htmx_indicator=True,
+                                    id="q-text-loading",
+                                )
+                            ),
+                            cls="space-y-5",
+                            hx_get=f"/{lang}/q/text",
+                            hx_target="#q-main-result",
+                        ),
+                    ),
+                    id="q-tabs",
+                    cls="uk-switcher",
                 ),
-                hx_get=f"/{lang}/q/dialog_keyword",
-                hx_target="#query-keyword-result",
+                cls="w-4/5 md:max-w-screen-md gap-3 space-y-3",
             ),
             Grid(
                 Div(
-                    H4(ui["TIPS"]["TIPS"][lang]),
+                    H4(ui["TIPS_TITLE"][lang]),
                     Accordion(
                         AccordionItem(
-                            ui["TIPS"]["SPEAKER"][lang],
+                            ui["TIPS_SPEAKER"][lang],
                             Ul(
                                 Li(
                                     Code("TALK_ROLE_PLAYER"),
-                                    " -> " + ui["SPEAKER"]["TALK_ROLE_PLAYER"][lang],
+                                    " -> " + ui["SPEAKER_TALK_ROLE_PLAYER"][lang],
                                 ),
                                 Li(
                                     Code("TALK_ROLE_MATE_AVATAR"),
-                                    " -> "
-                                    + ui["SPEAKER"]["TALK_ROLE_MATE_AVATAR"][lang],
+                                    " -> " + ui["SPEAKER_TALK_ROLE_MATE_AVATAR"][lang],
                                 ),
                                 Li(
                                     Code("{REALNAME[ID(1)]}"),
-                                    " -> " + ui["SPEAKER"]["REALNAME_ID_1"][lang],
+                                    " -> " + ui["SPEAKER_REALNAME_ID_1"][lang],
                                 ),
                                 Li(
                                     Code("{REALNAME[ID(2)]}"),
-                                    " -> " + ui["SPEAKER"]["REALNAME_ID_2"][lang],
+                                    " -> " + ui["SPEAKER_REALNAME_ID_2"][lang],
                                 ),
                                 cls=ListT.disc,
                             ),
                         ),
                         AccordionItem(
-                            ui["TIPS"]["LIMITATION"][lang],
+                            ui["TIPS_LIMITATION"][lang],
                             Ul(
-                                Li(ui["TIPS"]["LIMITATION1"][lang]),
-                                Li(ui["TIPS"]["LIMITATION2"][lang]),
+                                Li(ui["TIPS_LIMITATION1"][lang]),
+                                Li(ui["TIPS_LIMITATION2"][lang]),
                                 cls=ListT.disc,
                             ),
                         ),
                     ),
                 ),
-                id="query-keyword-result",
+                id="q-main-result",
                 cls="w-full md:max-w-screen-md gap-3",
             ),
             P(
-                ui["PAGE"]["FOOTER"][lang],
+                ui["PAGE_FOOTER"][lang],
                 cls=["relative bottom-0", TextT.muted, TextT.xs],
             ),
             cls="m-5 gap-5",

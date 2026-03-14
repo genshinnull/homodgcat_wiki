@@ -1,118 +1,142 @@
 {
-  "SPEAKER": {
-    "TALK_ROLE_PLAYER": {
-      "CHS": "主角",
-      "EN": "Traveler"
-    },
-    "TALK_ROLE_MATE_AVATAR": {
-      "CHS": "反主",
-      "EN": "Twin"
-    },
-    "REALNAME_ID_1": {
-      "CHS": "流浪者",
-      "EN": "Wanderer"
-    },
-    "REALNAME_ID_2": {
-      "CHS": "小家伙",
-      "EN": "Little Guy"
-    }
+  "ALERT_EMPTY": {
+    "CHS": "请求为空.",
+    "EN": "Empty request."
   },
-  "QUERY": {
-    "TITLE": {
-      "CHS": "搜索对话",
-      "EN": "Query Dialogues"
-    },
-    "SPEAKER": {
-      "CHS": "人物",
-      "EN": "Speaker"
-    },
-    "SPEAKER_PLACEHOLDER": {
-      "CHS": "名字或称号",
-      "EN": "Name or Title"
-    },
-    "CONTENT": {
-      "CHS": "内容",
-      "EN": "Content"
-    },
-    "REGEX": {
-      "CHS": "正则",
-      "EN": "Regex"
-    },
-    "SEARCH": {
-      "CHS": "搜索",
-      "EN": "Search"
-    },
-    "NEW": {
-      "CHS": "仅新增",
-      "EN": "New Only"
-    }
+  "ALERT_NONE": {
+    "CHS": "没有结果.",
+    "EN": "No results found."
   },
-  "TIPS": {
-    "TIPS": {
-      "CHS": "提示",
-      "EN": "Tips"
-    },
-    "SPEAKER": {
-      "CHS": "特殊人名",
-      "EN": "Special Speakers"
-    },
-    "LIMITATION": {
-      "CHS": "已知问题",
-      "EN": "Known Limitations"
-    },
-    "LIMITATION1": {
-      "CHS": "由于目前仅使用编号排序, 对话顺序可能不完全正确.",
-      "EN": "Lines may be out of order due to naive numerical ordering."
-    },
-    "LIMITATION2": {
-      "CHS": "邀约任务暂未完全解析.",
-      "EN": "Hangout Events are not yet fully parsed."
-    }
+  "ALERT_OVERFLOW": {
+    "CHS": "结果过多, 返回共 {1} 条中的前 {0} 条.",
+    "EN": "Too many results, returning the first {0} of {1}."
   },
-  "RESULT": {
-    "EXPAND_ID": {
-      "CHS": "展开 id 范围",
-      "EN": "Expand id range"
-    },
-    "EXPAND_TALK": {
-      "CHS": "展开完整对话",
-      "EN": "Expand full talk"
-    },
-    "EXPAND_QUEST": {
-      "CHS": "展开完整任务",
-      "EN": "Expand full quest"
-    }
+  "ALERT_SUCCESS": {
+    "CHS": "找到 {} 条结果.",
+    "EN": "Found {} results."
   },
-  "ALERT": {
-    "NONE": {
-      "CHS": "没有结果.",
-      "EN": "No results found."
-    },
-    "SUCCESS": {
-      "CHS": "找到 {} 条结果.",
-      "EN": "Found {} results."
-    },
-    "OVERFLOW": {
-      "CHS": "结果过多, 返回共 {1} 条中的前 {0} 条.",
-      "EN": "Too many results, returning the first {0} of {1}."
-    },
-    "EMPTY": {
-      "CHS": "请求为空.",
-      "EN": "Empty request."
-    }
+  "PAGE_CURR_VER": {
+    "CHS": "当前数据版本",
+    "EN": "Current data version"
   },
-  "PAGE": {
-    "FOOTER": {
-      "CHS": "HomoDGCat 网站与妮可少女无关且独立于 homdgcat.wiki.",
-      "EN": "The HomoDGCat website is not affiliated with HomDGCat and is independent from homdgcat.wiki."
-    },
-    "USE_LANG": {
-      "CHS": "简体中文",
-      "EN": "English"
-    },
-    "CURR_VER": {
-      "CHS": "当前数据版本",
-      "EN": "Current data version"
-    }
+  "PAGE_FOOTER": {
+    "CHS": "HomoDGCat 网站与妮可少女无关且独立于 homdgcat.wiki.",
+    "EN": "The HomoDGCat website is not affiliated with HomDGCat and is independent from homdgcat.wiki."
+  },
+  "PAGE_TITLE": {
+    "CHS": "原神文本搜索",
+    "EN": "Genshin Text Search"
+  },
+  "PAGE_USE_LANG": {
+    "CHS": "简体中文",
+    "EN": "English"
+  },
+  "QUERY_DIALOG_CONTENT": {
+    "CHS": "内容",
+    "EN": "Content"
+  },
+  "QUERY_DIALOG_SPEAKER": {
+    "CHS": "人物",
+    "EN": "Speaker"
+  },
+  "QUERY_DIALOG_SPEAKER_PLACEHOLDER": {
+    "CHS": "名字或称号",
+    "EN": "Name or Title"
+  },
+  "QUERY_NEW": {
+    "CHS": "仅新增",
+    "EN": "New Only"
+  },
+  "QUERY_REGEX": {
+    "CHS": "正则表达式",
+    "EN": "Regex Expression"
+  },
+  "QUERY_SEARCH": {
+    "CHS": "搜索",
+    "EN": "Search"
+  },
+  "QUERY_TAB_DIALOG": {
+    "CHS": "对话",
+    "EN": "Dialogues"
+  },
+  "QUERY_TAB_TEXT": {
+    "CHS": "全文本",
+    "EN": "All Text"
+  },
+  "QUERY_TEXT_EXCLUDE": {
+    "CHS": "排除类型",
+    "EN": "Exclude Types"
+  },
+  "QUERY_TEXT_KEY": {
+    "CHS": "文本键",
+    "EN": "Text key"
+  },
+  "QUERY_TEXT_KEY_PLACEHOLDER": {
+    "CHS": "哈希值或文件名(不含扩展名)",
+    "EN": "Hash or Filename (No Extension)"
+  },
+  "QUERY_TEXT_LANG_COMP": {
+    "CHS": "对比语言",
+    "EN": "Language to Compare"
+  },
+  "QUERY_TEXT_UNGROUPED": {
+    "CHS": "不合并相同值",
+    "EN": "Ungroup Identical Values"
+  },
+  "QUERY_TEXT_VALUE": {
+    "CHS": "文本值",
+    "EN": "Text Value"
+  },
+  "QUERY_TEXT_VALUE_PLACEHOLDER": {
+    "CHS": "内容或阅读物名",
+    "EN": "Content or Readable Name"
+  },
+  "RESULT_DIALOG_EXPAND_ID": {
+    "CHS": "展开 id 范围",
+    "EN": "Expand id range"
+  },
+  "RESULT_DIALOG_EXPAND_QUEST": {
+    "CHS": "展开完整任务",
+    "EN": "Expand full quest"
+  },
+  "RESULT_DIALOG_EXPAND_TALK": {
+    "CHS": "展开完整对话",
+    "EN": "Expand full talk"
+  },
+  "SPEAKER_REALNAME_ID_1": {
+    "CHS": "流浪者",
+    "EN": "Wanderer"
+  },
+  "SPEAKER_REALNAME_ID_2": {
+    "CHS": "小家伙",
+    "EN": "Little Guy"
+  },
+  "SPEAKER_TALK_ROLE_MATE_AVATAR": {
+    "CHS": "反主",
+    "EN": "Twin"
+  },
+  "SPEAKER_TALK_ROLE_PLAYER": {
+    "CHS": "主角",
+    "EN": "Traveler"
+  },
+  "TIPS_LIMITATION": {
+    "CHS": "已知问题",
+    "EN": "Known Limitations"
+  },
+  "TIPS_LIMITATION1": {
+    "CHS": "由于目前仅使用编号排序, 对话顺序可能不完全正确.",
+    "EN": "Lines may be out of order due to naive numerical ordering."
+  },
+  "TIPS_LIMITATION2": {
+    "CHS": "邀约任务暂未完全解析.",
+    "EN": "Hangout Events are not yet fully parsed."
+  },
+  "TIPS_SPEAKER": {
+    "CHS": "特殊人名",
+    "EN": "Special Speakers"
+  },
+  "TIPS_TITLE": {
+    "CHS": "提示",
+    "EN": "Tips"
   }
 }
