@@ -1,5 +1,3 @@
-import re
-
 from fasthtml.common import *
 from monsterui.all import *
 
@@ -30,9 +28,7 @@ def build_base_dialog(
             DivCentered(*talk_speaker, cls="") if talk_speaker else None,
             P(talkRoleType, cls=TextT.muted),
         ),
-        P(re.sub(r"\\n", "\n", talkContent), cls="whitespace-pre-line")
-        if talkContent
-        else None,
+        P(talkContent, cls="whitespace-pre-line") if talkContent else None,
     )
 
 
