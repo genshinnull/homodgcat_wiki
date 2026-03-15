@@ -115,6 +115,10 @@
     "CHS": "展开完整对话",
     "EN": "Expand full talk"
   },
+  "RESULT_TEXT_EXPAND_KEY": {
+    "CHS": "共 {} 条相同文本",
+    "EN": "{} identical entries"
+  },
   "SPEAKER_REALNAME_ID_1": {
     "CHS": "流浪者",
     "EN": "Wanderer"

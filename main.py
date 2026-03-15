@@ -332,7 +332,7 @@ def query_text_keyword(
     elif result_len < MAX_RESULTS:
         return (
             alert.build("success", UI["ALERT_SUCCESS"][lang].format(result_len)),
-            query_text.build(query_df.to_dicts(), lang, UI),
+            query_text.build(query_df.to_dicts(), lang, UI, ungrouped, bool(lang_comp)),
             cache_header,
         )
     else:
@@ -341,7 +341,13 @@ def query_text_keyword(
                 "warning",
                 UI["ALERT_OVERFLOW"][lang].format(MAX_RESULTS, result_len),
             ),
-            query_text.build(query_df.limit(MAX_RESULTS).to_dicts(), lang, UI),
+            query_text.build(
+                query_df.limit(MAX_RESULTS).to_dicts(),
+                lang,
+                UI,
+                ungrouped,
+                bool(lang_comp),
+            ),
             cache_header,
         )
 
