@@ -126,22 +126,23 @@ def query_dialog_keyword(
             query_lf = query_lf.filter(
                 pl.col.talkContentLower.str.contains(content, literal=True)
             )
+    query_lf = query_lf.select(
+        "id",
+        "talkRoleIdName",
+        "talkRoleName",
+        "talkTitle",
+        "talkContent",
+        "talkRoleType",
+        "talkId",
+        "questId",
+        "questIdName",
+        "activityIdName",
+        "chapterTitle",
+        "chapterNum",
+        "type",
+    )
     try:
-        qeury_df = query_lf.select(
-            "id",
-            "talkRoleIdName",
-            "talkRoleName",
-            "talkTitle",
-            "talkContent",
-            "talkRoleType",
-            "talkId",
-            "questId",
-            "questIdName",
-            "activityIdName",
-            "chapterTitle",
-            "chapterNum",
-            "type",
-        ).collect()
+        qeury_df = query_lf.collect()
     except pl.exceptions.ComputeError as e:
         return (alert.build("error", str(e)), cache_header)
     assert isinstance(qeury_df, pl.DataFrame)
@@ -218,9 +219,131 @@ def query_text_keyword(
     regex: bool = False,
     ungrouped: bool = False,
 ):
-    return query_text.build(
-        f"{key=}, {value=}, {lang_comp=}, {no_textmap=}, {no_readable=}, {no_subtitle=}, {new=}, {regex=}, {ungrouped=}"
-    )
+    if (not key and not value) or (no_textmap and no_readable and no_subtitle):
+        return (alert.build("error", UI["ALERT_EMPTY"][lang]), cache_header)
+    query_lf = text_data[lang]
+    assert isinstance(query_lf, pl.LazyFrame)
+    if new:
+        query_lf = query_lf.filter(pl.col.v_from == pl.col.v_from.max())
+    if key:
+        if regex:
+            query_lf = query_lf.filter(pl.col.key.str.contains(key))
+        else:
+            key = key.lower()
+            query_lf = query_lf.filter(pl.col.keyLower.str.contains(key, literal=True))
+    if value:
+        if regex:
+            query_lf = query_lf.filter(
+                (pl.col.value.str.contains(value))
+                | (pl.col.Paged.str.contains(value))
+                | (pl.col.Book.str.contains(value))
+                | (pl.col.Letter.str.contains(value))
+            )
+        else:
+            value = value.lower()
+            query_lf = query_lf.filter(
+                (pl.col.valueLower.str.contains(value, literal=True))
+                | (pl.col.pagedLower.str.contains(value, literal=True))
+                | (pl.col.bookLower.str.contains(value, literal=True))
+                | (pl.col.letterLower.str.contains(value, literal=True))
+            )
+    if no_textmap:
+        query_lf = query_lf.filter(pl.col.type != "TextMap")
+    if no_readable:
+        query_lf = query_lf.filter(pl.col.type != "Readable")
+    if no_subtitle:
+        query_lf = query_lf.filter(pl.col.type != "Subtitle")
+    if lang_comp := "" if lang_comp == "-" else lang_comp:
+        comp_df = text_data[lang_comp]
+        if ungrouped:
+            query_lf = (
+                query_lf.join(comp_df, on=["type", "key"], how="left")
+                .sort("value", "type")
+                .select(
+                    "type",
+                    "key",
+                    "value",
+                    "value_right",
+                    "Paged",
+                    "Paged_right",
+                    "Book",
+                    "Book_right",
+                    "Letter",
+                    "Letter_right",
+                    "k_from",
+                    "k_from_right",
+                    "kv_from",
+                    "kv_from_right",
+                )
+            )
+        else:
+            query_lf = (
+                query_lf.join(comp_df, on=["type", "key"], how="left")
+                .group_by(
+                    "type",
+                    "value",
+                    "value_right",
+                    "Paged",
+                    "Paged_right",
+                    "Book",
+                    "Book_right",
+                    "Letter",
+                    "Letter_right",
+                    "v_from",
+                    "v_from_right",
+                )
+                .agg("key")
+                .sort("value", "type")
+                .select(
+                    "type",
+                    "key",
+                    "value",
+                    "value_right",
+                    "Paged",
+                    "Paged_right",
+                    "Book",
+                    "Book_right",
+                    "Letter",
+                    "Letter_right",
+                    "v_from",
+                    "v_from_right",
+                )
+            )
+    else:
+        if ungrouped:
+            query_lf = query_lf.sort("value", "type").select(
+                "type", "key", "value", "Paged", "Book", "Letter", "k_from", "kv_from"
+            )
+        else:
+            query_lf = (
+                query_lf.group_by("type", "value", "Paged", "Book", "Letter", "v_from")
+                .agg("key")
+                .sort("value", "type")
+                .select("type", "key", "value", "Paged", "Book", "Letter", "v_from")
+            )
+    try:
+        query_df = query_lf.collect()
+    except pl.exceptions.ComputeError as e:
+        return (alert.build("error", str(e)), cache_header)
+    assert isinstance(query_df, pl.DataFrame)
+    result_len = len(query_df)
+    if result_len == 0:
+        return (alert.build("error", UI["ALERT_NONE"][lang]), cache_header)
+    elif result_len < MAX_RESULTS:
+        return (
+            alert.build("success", UI["ALERT_SUCCESS"][lang].format(result_len)),
+            query_text.build(query_df.to_dicts(), lang, UI),
+            cache_header,
+        )
+    else:
+        return (
+            alert.build(
+                "warning",
+                UI["ALERT_OVERFLOW"][lang].format(MAX_RESULTS, result_len),
+            ),
+            query_text.build(query_df.limit(MAX_RESULTS).to_dicts(), lang, UI),
+            cache_header,
+        )
 
 
 serve()
