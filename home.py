@@ -150,22 +150,27 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
                     Accordion(
                         AccordionItem(
                             ui["TIPS_SPEAKER"][lang],
+                            P(ui["TIPS_SPEAKER_DETAIL"][lang]),
                             Ul(
                                 Li(
                                     Code("TALK_ROLE_PLAYER"),
-                                    " -> " + ui["SPEAKER_TALK_ROLE_PLAYER"][lang],
+                                    " -> ",
+                                    Code(ui["SPEAKER_TALK_ROLE_PLAYER"][lang]),
                                 ),
                                 Li(
                                     Code("TALK_ROLE_MATE_AVATAR"),
-                                    " -> " + ui["SPEAKER_TALK_ROLE_MATE_AVATAR"][lang],
+                                    " -> ",
+                                    Code(ui["SPEAKER_TALK_ROLE_MATE_AVATAR"][lang]),
                                 ),
                                 Li(
                                     Code("{REALNAME[ID(1)]}"),
-                                    " -> " + ui["SPEAKER_REALNAME_ID_1"][lang],
+                                    " -> ",
+                                    Code(ui["SPEAKER_REALNAME_ID_1"][lang]),
                                 ),
                                 Li(
                                     Code("{REALNAME[ID(2)]}"),
-                                    " -> " + ui["SPEAKER_REALNAME_ID_2"][lang],
+                                    " -> ",
+                                    Code(ui["SPEAKER_REALNAME_ID_2"][lang]),
                                 ),
                                 cls=ListT.disc,
                             ),
@@ -175,6 +180,8 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
                             Ul(
                                 Li(ui["TIPS_LIMITATION1"][lang]),
                                 Li(ui["TIPS_LIMITATION2"][lang]),
+                                Li(ui["TIPS_LIMITATION3"][lang]),
+                                Li(ui["TIPS_LIMITATION4"][lang]),
                                 cls=ListT.disc,
                             ),
                         ),

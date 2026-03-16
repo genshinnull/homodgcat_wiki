@@ -156,12 +156,24 @@
     "EN": "Lines may be out of order due to naive numerical ordering."
   },
   "TIPS_LIMITATION2": {
-    "CHS": "邀约任务暂未完全解析.",
-    "EN": "Hangout Events are not yet fully parsed."
+    "CHS": "邀约任务暂未正确解析.",
+    "EN": "Hangout Events are not correctly parsed yet."
+  },
+  "TIPS_LIMITATION3": {
+    "CHS": "全文本数据上游缺失 1.0, 1.1, 1.2, 1.3, 4.1 内容.",
+    "EN": "All text data upstream is missing content from versions 1.0, 1.1, 1.2, 1.3, and 4.1."
+  },
+  "TIPS_LIMITATION4": {
+    "CHS": "对话数据暂未收录 Reminder 类型文本.",
+    "EN": "Dialogue data does not include Reminder type entires yet."
   },
   "TIPS_SPEAKER": {
     "CHS": "特殊人名",
     "EN": "Special Speakers"
+  },
+  "TIPS_SPEAKER_DETAIL": {
+    "CHS": "为原始数据中的部分值(左侧)提供了便捷查询的别名(右侧).",
+    "EN": "Shortcuts (right-hand side) are provided for certain values present in the raw data (left-hand side)."
   },
   "TIPS_TITLE": {
     "CHS": "提示",
