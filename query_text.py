@@ -12,8 +12,13 @@ def build_base_text(
 ):
     readable_name = " - ".join([name for name in [paged, book, letter] if name])
     return Div(
-        P(readable_name, cls=TextT.primary) if readable_name else None,
-        P(value, cls="whitespace-pre-line"),
+        P(readable_name, cls=[TextT.primary, "text-wrap break-all"])
+        if readable_name
+        else None,
+        P(
+            value,
+            cls="whitespace-pre-line text-wrap break-all",
+        ),
         cls="space-y-1",
     )
 
@@ -48,7 +53,7 @@ def build_text_key(lang: str, ui: dict, key: str | list[str], i: int):
                     ),
                 ),
             )
-    return P(key, cls=TextT.bold)
+    return P(key, cls=[TextT.bold, "text-wrap break-all"])
 
 
 def build_text_window(lang: str, ui: dict, k_from: str, kv_from: str, v_from: str):
@@ -103,6 +108,7 @@ def build_result(text_list: list[dict], lang: str, ui: dict, lang_comp: bool):
                     DivHStacked(
                         build_text_key(lang, ui, text["key"], i),
                         P(text["type"], cls=TextT.muted),
+                        cls=[FlexT.wrap, "space-x-2"],
                     ),
                     build_text_window(
                         lang,

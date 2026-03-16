@@ -19,16 +19,23 @@ def build_base_dialog(
             talkRoleIdName = talkRoleName
     talk_speaker = []
     if talkRoleIdName:
-        talk_speaker.append(P(talkRoleIdName, cls=TextT.bold))
+        talk_speaker.append(P(talkRoleIdName, cls=[TextT.bold, "text-wrap break-all"]))
     if talkTitle:
-        talk_speaker.append(P(talkTitle, cls=(TextT.muted, TextT.xs)))
+        talk_speaker.append(
+            P(talkTitle, cls=[TextT.muted, TextT.xs, "text-wrap break-all"])
+        )
     return (
-        DivHStacked(P(id), P(type, cls=TextT.muted), cls=[TextT.xs, "space-x-4"]),
+        DivHStacked(
+            P(id), P(type, cls=TextT.muted), cls=[TextT.xs, FlexT.wrap, "space-x-2"]
+        ),
         DivHStacked(
             DivCentered(*talk_speaker, cls="") if talk_speaker else None,
             P(talkRoleType, cls=TextT.muted),
+            cls="space-x-2",
         ),
-        P(talkContent, cls="whitespace-pre-line") if talkContent else None,
+        P(talkContent, cls="whitespace-pre-line text-wrap break-all")
+        if talkContent
+        else None,
     )
 
 
@@ -129,7 +136,10 @@ def build_keyword_result(dialogs: list[dict], lang: str, ui: dict):
                             dialog["talkRoleType"],
                             dialog["type"],
                         ),
-                        P(talk_collection_names, cls=[TextT.muted, TextT.xs])
+                        P(
+                            talk_collection_names,
+                            cls=[TextT.muted, TextT.xs, "text-wrap break-all"],
+                        )
                         if talk_collection_names
                         else None,
                     ),
