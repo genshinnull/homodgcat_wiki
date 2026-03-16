@@ -12,34 +12,72 @@ def build_base_text(
 ):
     readable_name = " - ".join([name for name in [paged, book, letter] if name])
     return Div(
-        P(readable_name, cls=TextT.primary),
+        P(readable_name, cls=TextT.primary) if readable_name else None,
         P(value, cls="whitespace-pre-line"),
         cls="space-y-1",
     )
 
 
 def build_text_key(lang: str, ui: dict, key: str | list[str], i: int):
-    if isinstance(key, list) and len(key) > 1:
-        return (
-            P(ui["RESULT_TEXT_EXPAND_KEY"][lang].format(len(key))),
-            UkIconLink("expand", data_uk_toggle=f"target: #modal-{i}", cls=AT.primary),
-            Modal(
-                ", ".join(key),
-                id=f"modal-{i}",
-                footer=ModalCloseButton(
-                    cls=[
-                        "absolute top-3 right-3",
-                        ButtonT.destructive,
-                    ]
+    if isinstance(key, list):
+        if len(key) == 1:
+            key = key[0]
+        else:
+            return (
+                A(
+                    DivHStacked(
+                        UkIcon("expand"),
+                        P(
+                            ui["RESULT_TEXT_EXPAND_KEY"][lang].format(len(key)),
+                            cls=TextT.bold,
+                        ),
+                        cls="space-x-1",
+                    ),
+                    href="#",
+                    data_uk_toggle=f"target: #modal-{i}",
+                    cls=AT.text,
                 ),
-            ),
+                Modal(
+                    ", ".join(key),
+                    id=f"modal-{i}",
+                    footer=ModalCloseButton(
+                        cls=[
+                            "absolute top-3 right-3",
+                            ButtonT.destructive,
+                        ]
+                    ),
+                ),
+            )
+    return P(key, cls=TextT.bold)
+
+
+def build_text_window(lang: str, ui: dict, k_from: str, kv_from: str, v_from: str):
+    if v_from:
+        return Div(
+            P(
+                ui["RESULT_TEXT_V_FROM"][lang],
+                " ",
+                CodeSpan(v_from),
+                cls=[TextT.muted, TextT.xs, TextT.right],
+            )
         )
-    else:
-        key = key[0]
-        return P(key, cls="uk-codespan")
+    return Div(
+        P(
+            ui["RESULT_TEXT_K_FROM"][lang],
+            " ",
+            CodeSpan(k_from),
+            cls=[TextT.muted, TextT.xs, TextT.right],
+        ),
+        P(
+            ui["RESULT_TEXT_KV_FROM"][lang],
+            " ",
+            CodeSpan(kv_from),
+            cls=[TextT.muted, TextT.xs, TextT.right],
+        ),
+    )
 
 
-def build(text_list: list[dict], lang: str, ui: dict, ungrouped: bool, lang_comp: bool):
+def build_result(text_list: list[dict], lang: str, ui: dict, lang_comp: bool):
     results = []
     for i, text in enumerate(text_list):
         text_content = []
@@ -61,9 +99,18 @@ def build(text_list: list[dict], lang: str, ui: dict, ungrouped: bool, lang_comp
             )
         results.append(
             Li(
-                DivHStacked(
-                    P(text["type"], cls=TextT.bold),
-                    build_text_key(lang, ui, text["key"], i),
+                DivFullySpaced(
+                    DivHStacked(
+                        build_text_key(lang, ui, text["key"], i),
+                        P(text["type"], cls=TextT.muted),
+                    ),
+                    build_text_window(
+                        lang,
+                        ui,
+                        text.get("k_from"),
+                        text.get("kv_from"),
+                        text.get("v_from"),
+                    ),
                 ),
                 *text_content,
                 cls="space-y-1",

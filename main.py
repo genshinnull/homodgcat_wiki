@@ -155,17 +155,16 @@ def query_dialog_keyword(
             query_dialog.build_keyword_result(qeury_df.to_dicts(), lang, UI),
             cache_header,
         )
-    else:
-        return (
-            alert.build(
-                "warning",
-                UI["ALERT_OVERFLOW"][lang].format(MAX_RESULTS, result_len),
-            ),
-            query_dialog.build_keyword_result(
-                qeury_df.limit(MAX_RESULTS).to_dicts(), lang, UI
-            ),
-            cache_header,
-        )
+    return (
+        alert.build(
+            "warning",
+            UI["ALERT_OVERFLOW"][lang].format(MAX_RESULTS, result_len),
+        ),
+        query_dialog.build_keyword_result(
+            qeury_df.limit(MAX_RESULTS).to_dicts(), lang, UI
+        ),
+        cache_header,
+    )
 
 
 @app.route("/{lang}/q/dialog_collection", methods="GET")
@@ -271,9 +270,7 @@ def query_text_keyword(
                     "Letter",
                     "Letter_right",
                     "k_from",
-                    "k_from_right",
                     "kv_from",
-                    "kv_from_right",
                 )
             )
         else:
@@ -290,7 +287,6 @@ def query_text_keyword(
                     "Letter",
                     "Letter_right",
                     "v_from",
-                    "v_from_right",
                 )
                 .agg("key")
                 .sort("value", "type")
@@ -306,7 +302,6 @@ def query_text_keyword(
                     "Letter",
                     "Letter_right",
                     "v_from",
-                    "v_from_right",
                 )
             )
     else:
@@ -332,7 +327,7 @@ def query_text_keyword(
     elif result_len < MAX_RESULTS:
         return (
             alert.build("success", UI["ALERT_SUCCESS"][lang].format(result_len)),
-            query_text.build(query_df.to_dicts(), lang, UI, ungrouped, bool(lang_comp)),
+            query_text.build_result(query_df.to_dicts(), lang, UI, bool(lang_comp)),
             cache_header,
         )
     else:
@@ -341,11 +336,10 @@ def query_text_keyword(
                 "warning",
                 UI["ALERT_OVERFLOW"][lang].format(MAX_RESULTS, result_len),
             ),
-            query_text.build(
+            query_text.build_result(
                 query_df.limit(MAX_RESULTS).to_dicts(),
                 lang,
                 UI,
-                ungrouped,
                 bool(lang_comp),
             ),
             cache_header,

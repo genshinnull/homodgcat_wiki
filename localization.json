@@ -116,8 +116,20 @@
     "EN": "Expand full talk"
   },
   "RESULT_TEXT_EXPAND_KEY": {
-    "CHS": "共 {} 条相同文本",
-    "EN": "{} identical entries"
+    "CHS": "{} 相同文本",
+    "EN": "{} Identical Entries"
+  },
+  "RESULT_TEXT_K_FROM": {
+    "CHS": "键自",
+    "EN": "Key Since "
+  },
+  "RESULT_TEXT_KV_FROM": {
+    "CHS": "键值对自",
+    "EN": "Key-Value Pair Since "
+  },
+  "RESULT_TEXT_V_FROM": {
+    "CHS": "值自",
+    "EN": "Value Since "
   },
   "SPEAKER_REALNAME_ID_1": {
     "CHS": "流浪者",
