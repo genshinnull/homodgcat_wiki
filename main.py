@@ -34,6 +34,8 @@ if not (effective_data_dir := Path(DATA_DIR)).is_dir():
     for lang in Langs:
         with open(effective_data_dir / f"GI_Talk_{lang}.parquet", "wb") as f:
             f.write(httpx.get(f"{DATA_DIR}/GI_Talk_{lang}.parquet").content)
+        with open(effective_data_dir / f"GI_Text_{lang}.parquet", "wb") as f:
+            f.write(httpx.get(f"{DATA_DIR}/GI_Text_{lang}.parquet").content)
 
 talk_data = {}
 for lang in Langs:
