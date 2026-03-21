@@ -13,7 +13,7 @@ import home
 import query_dialog
 import query_text
 
-DATA_DIR = os.environ["DATA_DIR"]
+DATA_SRC = os.environ["DATA_SRC"]
 CURR_VER = os.environ["CURR_VER"]
 CACHE_MAX_AGE = os.environ.get("CACHE_MAX_AGE", None)
 cache_header = HttpHeader(
@@ -27,58 +27,69 @@ with open("localization.json") as f:
 
 pl.Config.set_engine_affinity("streaming")
 
-if not (effective_data_dir := Path(DATA_DIR)).is_dir():
-    effective_data_dir = Path("temp")
-    shutil.rmtree(effective_data_dir, ignore_errors=True)
-    effective_data_dir.mkdir()
+temp_dir = Path("temp")
+shutil.rmtree(temp_dir, ignore_errors=True)
+temp_dir.mkdir()
+data_dir = Path("data")
+shutil.rmtree(data_dir, ignore_errors=True)
+data_dir.mkdir()
+
+if (data_src_dir := Path(DATA_SRC)).is_dir():
     for lang in Langs:
-        with open(effective_data_dir / f"GI_Talk_{lang}.parquet", "wb") as f:
-            f.write(httpx.get(f"{DATA_DIR}/GI_Talk_{lang}.parquet").content)
-        with open(effective_data_dir / f"GI_Text_{lang}.parquet", "wb") as f:
-            f.write(httpx.get(f"{DATA_DIR}/GI_Text_{lang}.parquet").content)
+        shutil.copyfile(
+            data_src_dir / f"GI_Talk_{lang}.parquet",
+            temp_dir / f"GI_Talk_{lang}.parquet",
+        )
+        shutil.copyfile(
+            data_src_dir / f"GI_Text_{lang}.parquet",
+            temp_dir / f"GI_Text_{lang}.parquet",
+        )
+else:
+    for lang in Langs:
+        with open(temp_dir / f"GI_Talk_{lang}.parquet", "wb") as f:
+            f.write(httpx.get(f"{DATA_SRC}/GI_Talk_{lang}.parquet").content)
+        with open(temp_dir / f"GI_Text_{lang}.parquet", "wb") as f:
+            f.write(httpx.get(f"{DATA_SRC}/GI_Text_{lang}.parquet").content)
 
 talk_data = {}
 for lang in Langs:
-    talk_data_path = effective_data_dir / f"GI_Talk_{lang}.parquet"
-    talk_data[lang] = (
-        pl.scan_parquet(talk_data_path)
-        .with_columns(
-            talkRoleIdName=pl.when(pl.col.talkRoleType == "TALK_ROLE_PLAYER")
-            .then(pl.lit(UI["SPEAKER_TALK_ROLE_PLAYER"][lang]))
-            .when(pl.col.talkRoleType == "TALK_ROLE_MATE_AVATAR")
-            .then(pl.lit(UI["SPEAKER_TALK_ROLE_MATE_AVATAR"][lang]))
-            .when(
-                pl.col.talkRoleIdName.str.contains(
-                    r"^\#\{REALNAME\[ID\(1\)\|\w+\(\w+\)\]\}$"
-                )
+    pl.scan_parquet(temp_dir / f"GI_Talk_{lang}.parquet").with_columns(
+        talkRoleIdName=pl.when(pl.col.talkRoleType == "TALK_ROLE_PLAYER")
+        .then(pl.lit(UI["SPEAKER_TALK_ROLE_PLAYER"][lang]))
+        .when(pl.col.talkRoleType == "TALK_ROLE_MATE_AVATAR")
+        .then(pl.lit(UI["SPEAKER_TALK_ROLE_MATE_AVATAR"][lang]))
+        .when(
+            pl.col.talkRoleIdName.str.contains(
+                r"^\#\{REALNAME\[ID\(1\)\|\w+\(\w+\)\]\}$"
             )
-            .then(pl.lit(UI["SPEAKER_REALNAME_ID_1"][lang]))
-            .when(
-                pl.col.talkRoleIdName.str.contains(
-                    r"^\#\{REALNAME\[ID\(2\)\|\w+\(\w+\)\]\}$"
-                )
+        )
+        .then(pl.lit(UI["SPEAKER_REALNAME_ID_1"][lang]))
+        .when(
+            pl.col.talkRoleIdName.str.contains(
+                r"^\#\{REALNAME\[ID\(2\)\|\w+\(\w+\)\]\}$"
             )
-            .then(pl.lit(UI["SPEAKER_REALNAME_ID_2"][lang]))
-            .otherwise(pl.col.talkRoleIdName)
         )
-        .with_columns(
-            talkRoleIdNameLower=pl.col.talkRoleIdName.str.to_lowercase(),
-            talkRoleNameLower=pl.col.talkRoleName.str.to_lowercase(),
-            talkTitleLower=pl.col.talkTitle.str.to_lowercase(),
-            talkContentLower=pl.col.talkContent.str.to_lowercase(),
-        )
-    )
+        .then(pl.lit(UI["SPEAKER_REALNAME_ID_2"][lang]))
+        .otherwise(pl.col.talkRoleIdName)
+    ).with_columns(
+        talkRoleIdNameLower=pl.col.talkRoleIdName.str.to_lowercase(),
+        talkRoleNameLower=pl.col.talkRoleName.str.to_lowercase(),
+        talkTitleLower=pl.col.talkTitle.str.to_lowercase(),
+        talkContentLower=pl.col.talkContent.str.to_lowercase(),
+    ).sink_parquet(data_dir / f"GI_Talk_{lang}.parquet")
+    talk_data[lang] = pl.scan_parquet(data_dir / f"GI_Talk_{lang}.parquet")
 
 text_data = {}
 for lang in Langs:
-    text_data_path = effective_data_dir / f"GI_Text_{lang}.parquet"
-    text_data[lang] = pl.scan_parquet(text_data_path).with_columns(
+    text_data_path = temp_dir / f"GI_Text_{lang}.parquet"
+    pl.scan_parquet(text_data_path).with_columns(
         keyLower=pl.col.key.str.to_lowercase(),
         valueLower=pl.col.value.str.to_lowercase(),
         pagedLower=pl.col.Paged.str.to_lowercase(),
         bookLower=pl.col.Book.str.to_lowercase(),
         letterLower=pl.col.Letter.str.to_lowercase(),
-    )
+    ).sink_parquet(data_dir / f"GI_Text_{lang}.parquet")
+    text_data[lang] = pl.scan_parquet(data_dir / f"GI_Text_{lang}.parquet")
 
 app = FastHTML(hdrs=Theme.blue.headers())
 

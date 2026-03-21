@@ -21,3 +21,4 @@ venv.bak/
 
 .sesskey
 temp/
+data/
