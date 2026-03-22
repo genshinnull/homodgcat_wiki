@@ -1,3 +1,4 @@
+import contextlib
 import functools
 import json
 import os
@@ -13,85 +14,89 @@ import home
 import query_dialog
 import query_text
 
-DATA_SRC = os.environ["DATA_SRC"]
-CURR_VER = os.environ["CURR_VER"]
-CACHE_MAX_AGE = os.environ.get("CACHE_MAX_AGE", None)
-cache_header = HttpHeader(
-    "Cache-Control", f"max-age={CACHE_MAX_AGE}" if CACHE_MAX_AGE else "no-store"
-)
-MAX_RESULTS = 1000
-Langs = str_enum("Langs", *os.environ["LANGS"].split(","))
-
-with open("localization.json") as f:
-    UI = json.loads(f.read())
-
 pl.Config.set_engine_affinity("streaming")
 
-temp_dir = Path("temp")
-shutil.rmtree(temp_dir, ignore_errors=True)
-temp_dir.mkdir()
-data_dir = Path("data")
-shutil.rmtree(data_dir, ignore_errors=True)
-data_dir.mkdir()
+Langs = str_enum("Langs", *os.environ["LANGS"].split(","))
 
-if (data_src_dir := Path(DATA_SRC)).is_dir():
-    for lang in Langs:
-        shutil.copyfile(
-            data_src_dir / f"GI_Talk_{lang}.parquet",
-            temp_dir / f"GI_Talk_{lang}.parquet",
-        )
-        shutil.copyfile(
-            data_src_dir / f"GI_Text_{lang}.parquet",
-            temp_dir / f"GI_Text_{lang}.parquet",
-        )
-else:
-    for lang in Langs:
-        with open(temp_dir / f"GI_Talk_{lang}.parquet", "wb") as f:
-            f.write(httpx.get(f"{DATA_SRC}/GI_Talk_{lang}.parquet").content)
-        with open(temp_dir / f"GI_Text_{lang}.parquet", "wb") as f:
-            f.write(httpx.get(f"{DATA_SRC}/GI_Text_{lang}.parquet").content)
-
+globals = {}
+ui = {}
 talk_data = {}
-for lang in Langs:
-    pl.scan_parquet(temp_dir / f"GI_Talk_{lang}.parquet").with_columns(
-        talkRoleIdName=pl.when(pl.col.talkRoleType == "TALK_ROLE_PLAYER")
-        .then(pl.lit(UI["SPEAKER_TALK_ROLE_PLAYER"][lang]))
-        .when(pl.col.talkRoleType == "TALK_ROLE_MATE_AVATAR")
-        .then(pl.lit(UI["SPEAKER_TALK_ROLE_MATE_AVATAR"][lang]))
-        .when(
-            pl.col.talkRoleIdName.str.contains(
-                r"^\#\{REALNAME\[ID\(1\)\|\w+\(\w+\)\]\}$"
-            )
-        )
-        .then(pl.lit(UI["SPEAKER_REALNAME_ID_1"][lang]))
-        .when(
-            pl.col.talkRoleIdName.str.contains(
-                r"^\#\{REALNAME\[ID\(2\)\|\w+\(\w+\)\]\}$"
-            )
-        )
-        .then(pl.lit(UI["SPEAKER_REALNAME_ID_2"][lang]))
-        .otherwise(pl.col.talkRoleIdName)
-    ).with_columns(
-        talkRoleIdNameLower=pl.col.talkRoleIdName.str.to_lowercase(),
-        talkRoleNameLower=pl.col.talkRoleName.str.to_lowercase(),
-        talkTitleLower=pl.col.talkTitle.str.to_lowercase(),
-        talkContentLower=pl.col.talkContent.str.to_lowercase(),
-    ).sink_parquet(data_dir / f"GI_Talk_{lang}.parquet")
-    talk_data[lang] = pl.scan_parquet(data_dir / f"GI_Talk_{lang}.parquet")
-
 text_data = {}
-for lang in Langs:
-    text_data_path = temp_dir / f"GI_Text_{lang}.parquet"
-    pl.scan_parquet(text_data_path).with_columns(
-        keyLower=pl.col.key.str.to_lowercase(),
-        valueLower=pl.col.value.str.to_lowercase(),
-        pagedLower=pl.col.Paged.str.to_lowercase(),
-        bookLower=pl.col.Book.str.to_lowercase(),
-        letterLower=pl.col.Letter.str.to_lowercase(),
-    ).sink_parquet(data_dir / f"GI_Text_{lang}.parquet")
-    text_data[lang] = pl.scan_parquet(data_dir / f"GI_Text_{lang}.parquet")
 
-app = FastHTML(hdrs=Theme.blue.headers())
+
+@contextlib.asynccontextmanager
+async def lifespan(app):
+    DATA_SRC = os.environ["DATA_SRC"]
+    globals["CURR_VER"] = os.environ["CURR_VER"]
+    CACHE_MAX_AGE = os.environ.get("CACHE_MAX_AGE", None)
+    globals["cache_header"] = HttpHeader(
+        "Cache-Control", f"max-age={CACHE_MAX_AGE}" if CACHE_MAX_AGE else "no-store"
+    )
+    globals["MAX_RESULTS"] = 1000
+    with open("localization.json") as f:
+        ui.update(json.loads(f.read()))
+    temp_dir = Path("temp")
+    shutil.rmtree(temp_dir, ignore_errors=True)
+    temp_dir.mkdir()
+    data_dir = Path("data")
+    shutil.rmtree(data_dir, ignore_errors=True)
+    data_dir.mkdir()
+    if (data_src_dir := Path(DATA_SRC)).is_dir():
+        for lang in Langs:
+            shutil.copyfile(
+                data_src_dir / f"GI_Talk_{lang}.parquet",
+                temp_dir / f"GI_Talk_{lang}.parquet",
+            )
+            shutil.copyfile(
+                data_src_dir / f"GI_Text_{lang}.parquet",
+                temp_dir / f"GI_Text_{lang}.parquet",
+            )
+    else:
+        for lang in Langs:
+            with open(temp_dir / f"GI_Talk_{lang}.parquet", "wb") as f:
+                f.write(httpx.get(f"{DATA_SRC}/GI_Talk_{lang}.parquet").content)
+            with open(temp_dir / f"GI_Text_{lang}.parquet", "wb") as f:
+                f.write(httpx.get(f"{DATA_SRC}/GI_Text_{lang}.parquet").content)
+    for lang in Langs:
+        pl.scan_parquet(temp_dir / f"GI_Talk_{lang}.parquet").with_columns(
+            talkRoleIdName=pl.when(pl.col.talkRoleType == "TALK_ROLE_PLAYER")
+            .then(pl.lit(ui["SPEAKER_TALK_ROLE_PLAYER"][lang]))
+            .when(pl.col.talkRoleType == "TALK_ROLE_MATE_AVATAR")
+            .then(pl.lit(ui["SPEAKER_TALK_ROLE_MATE_AVATAR"][lang]))
+            .when(
+                pl.col.talkRoleIdName.str.contains(
+                    r"^\#\{REALNAME\[ID\(1\)\|\w+\(\w+\)\]\}$"
+                )
+            )
+            .then(pl.lit(ui["SPEAKER_REALNAME_ID_1"][lang]))
+            .when(
+                pl.col.talkRoleIdName.str.contains(
+                    r"^\#\{REALNAME\[ID\(2\)\|\w+\(\w+\)\]\}$"
+                )
+            )
+            .then(pl.lit(ui["SPEAKER_REALNAME_ID_2"][lang]))
+            .otherwise(pl.col.talkRoleIdName)
+        ).with_columns(
+            talkRoleIdNameLower=pl.col.talkRoleIdName.str.to_lowercase(),
+            talkRoleNameLower=pl.col.talkRoleName.str.to_lowercase(),
+            talkTitleLower=pl.col.talkTitle.str.to_lowercase(),
+            talkContentLower=pl.col.talkContent.str.to_lowercase(),
+        ).sink_parquet(data_dir / f"GI_Talk_{lang}.parquet")
+        talk_data[lang] = pl.scan_parquet(data_dir / f"GI_Talk_{lang}.parquet")
+    for lang in Langs:
+        text_data_path = temp_dir / f"GI_Text_{lang}.parquet"
+        pl.scan_parquet(text_data_path).with_columns(
+            keyLower=pl.col.key.str.to_lowercase(),
+            valueLower=pl.col.value.str.to_lowercase(),
+            pagedLower=pl.col.Paged.str.to_lowercase(),
+            bookLower=pl.col.Book.str.to_lowercase(),
+            letterLower=pl.col.Letter.str.to_lowercase(),
+        ).sink_parquet(data_dir / f"GI_Text_{lang}.parquet")
+        text_data[lang] = pl.scan_parquet(data_dir / f"GI_Text_{lang}.parquet")
+    yield
+
+
+app = FastHTML(hdrs=Theme.blue.headers(), lifespan=lifespan)
 
 
 @app.route("/{lang}", methods="GET")
@@ -103,7 +108,10 @@ def get_home(lang: str | None):
         if (lang_upper := lang.upper()) in Langs:
             return Redirect(f"/{lang_upper}")
         raise HTTPException(status_code=404)
-    return (*home.build(lang, UI, list(Langs), CURR_VER), cache_header)
+    return (
+        *home.build(lang, ui, list(Langs), globals["CURR_VER"]),
+        globals["cache_header"],
+    )
 
 
 @app.route("/{lang}/q/dialog_keyword", methods="GET")
@@ -112,7 +120,7 @@ def query_dialog_keyword(
     lang: Langs, speaker: str, content: str, new: bool = False, regex: bool = False
 ):
     if not speaker and not content:
-        return (alert.build("error", UI["ALERT_EMPTY"][lang]), cache_header)
+        return (alert.build("error", ui["ALERT_EMPTY"][lang]), globals["cache_header"])
     query_lf = talk_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if new:
@@ -157,26 +165,26 @@ def query_dialog_keyword(
     try:
         qeury_df = query_lf.collect()
     except pl.exceptions.ComputeError as e:
-        return (alert.build("error", str(e)), cache_header)
+        return (alert.build("error", str(e)), globals["cache_header"])
     assert isinstance(qeury_df, pl.DataFrame)
     result_len = len(qeury_df)
     if result_len == 0:
-        return (alert.build("error", UI["ALERT_NONE"][lang]), cache_header)
-    elif result_len < MAX_RESULTS:
+        return (alert.build("error", ui["ALERT_NONE"][lang]), globals["cache_header"])
+    elif result_len < globals["MAX_RESULTS"]:
         return (
-            alert.build("success", UI["ALERT_SUCCESS"][lang].format(result_len)),
-            query_dialog.build_keyword_result(qeury_df.to_dicts(), lang, UI),
-            cache_header,
+            alert.build("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
+            query_dialog.build_keyword_result(qeury_df.to_dicts(), lang, ui),
+            globals["cache_header"],
         )
     return (
         alert.build(
             "warning",
-            UI["ALERT_OVERFLOW"][lang].format(MAX_RESULTS, result_len),
+            ui["ALERT_OVERFLOW"][lang].format(globals["MAX_RESULTS"], result_len),
         ),
         query_dialog.build_keyword_result(
-            qeury_df.limit(MAX_RESULTS).to_dicts(), lang, UI
+            qeury_df.limit(globals["MAX_RESULTS"]).to_dicts(), lang, ui
         ),
-        cache_header,
+        globals["cache_header"],
     )
 
 
@@ -213,7 +221,7 @@ def query_dialog_collection(
         query_dialog.build_collection_result(
             query_df.rows_by_key("talkId", named=True)
         ),
-        cache_header,
+        globals["cache_header"],
     )
 
 
@@ -232,7 +240,7 @@ def query_text_keyword(
     ungrouped: bool = False,
 ):
     if (not key and not value) or (no_textmap and no_readable and no_subtitle):
-        return (alert.build("error", UI["ALERT_EMPTY"][lang]), cache_header)
+        return (alert.build("error", ui["ALERT_EMPTY"][lang]), globals["cache_header"])
     query_lf = text_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if new:
@@ -332,30 +340,30 @@ def query_text_keyword(
     try:
         query_df = query_lf.collect()
     except pl.exceptions.ComputeError as e:
-        return (alert.build("error", str(e)), cache_header)
+        return (alert.build("error", str(e)), globals["cache_header"])
     assert isinstance(query_df, pl.DataFrame)
     result_len = len(query_df)
     if result_len == 0:
-        return (alert.build("error", UI["ALERT_NONE"][lang]), cache_header)
-    elif result_len < MAX_RESULTS:
+        return (alert.build("error", ui["ALERT_NONE"][lang]), globals["cache_header"])
+    elif result_len < globals["MAX_RESULTS"]:
         return (
-            alert.build("success", UI["ALERT_SUCCESS"][lang].format(result_len)),
-            query_text.build_result(query_df.to_dicts(), lang, UI, bool(lang_comp)),
-            cache_header,
+            alert.build("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
+            query_text.build_result(query_df.to_dicts(), lang, ui, bool(lang_comp)),
+            globals["cache_header"],
         )
     else:
         return (
             alert.build(
                 "warning",
-                UI["ALERT_OVERFLOW"][lang].format(MAX_RESULTS, result_len),
+                ui["ALERT_OVERFLOW"][lang].format(globals["MAX_RESULTS"], result_len),
             ),
             query_text.build_result(
-                query_df.limit(MAX_RESULTS).to_dicts(),
+                query_df.limit(globals["MAX_RESULTS"]).to_dicts(),
                 lang,
-                UI,
+                ui,
                 bool(lang_comp),
             ),
-            cache_header,
+            globals["cache_header"],
         )
 
 
