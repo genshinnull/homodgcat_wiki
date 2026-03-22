@@ -181,7 +181,6 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
                                 Li(ui["TIPS_LIMITATION1"][lang]),
                                 Li(ui["TIPS_LIMITATION2"][lang]),
                                 Li(ui["TIPS_LIMITATION3"][lang]),
-                                Li(ui["TIPS_LIMITATION4"][lang]),
                                 cls=ListT.disc,
                             ),
                         ),
