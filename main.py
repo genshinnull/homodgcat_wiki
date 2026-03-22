@@ -273,7 +273,7 @@ def query_text_keyword(
         query_lf = query_lf.filter(pl.col.type != "Readable")
     if no_subtitle:
         query_lf = query_lf.filter(pl.col.type != "Subtitle")
-    if lang_comp := "" if lang_comp == "-" else lang_comp:
+    if lang_comp != "-":
         comp_df = text_data[lang_comp]
         if ungrouped:
             query_lf = (
@@ -348,7 +348,7 @@ def query_text_keyword(
     elif result_len < globals["MAX_RESULTS"]:
         return (
             alert.build("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
-            query_text.build_result(query_df.to_dicts(), lang, ui, bool(lang_comp)),
+            query_text.build_result(query_df.to_dicts(), lang, ui, lang_comp != "-"),
             globals["cache_header"],
         )
     else:
@@ -361,7 +361,7 @@ def query_text_keyword(
                 query_df.limit(globals["MAX_RESULTS"]).to_dicts(),
                 lang,
                 ui,
-                bool(lang_comp),
+                lang_comp != "-",
             ),
             globals["cache_header"],
         )
