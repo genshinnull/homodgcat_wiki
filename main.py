@@ -163,17 +163,17 @@ def query_dialog_keyword(
         "type",
     )
     try:
-        qeury_df = query_lf.collect()
+        query_df = query_lf.collect()
     except pl.exceptions.ComputeError as e:
         return (alert.build("error", str(e)), globals["cache_header"])
-    assert isinstance(qeury_df, pl.DataFrame)
-    result_len = len(qeury_df)
+    assert isinstance(query_df, pl.DataFrame)
+    result_len = len(query_df)
     if result_len == 0:
         return (alert.build("error", ui["ALERT_NONE"][lang]), globals["cache_header"])
     elif result_len < globals["MAX_RESULTS"]:
         return (
             alert.build("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
-            query_dialog.build_keyword_result(qeury_df.to_dicts(), lang, ui),
+            query_dialog.build_keyword_result(query_df.to_dicts(), lang, ui),
             globals["cache_header"],
         )
     return (
@@ -182,7 +182,7 @@ def query_dialog_keyword(
             ui["ALERT_OVERFLOW"][lang].format(globals["MAX_RESULTS"], result_len),
         ),
         query_dialog.build_keyword_result(
-            qeury_df.limit(globals["MAX_RESULTS"]).to_dicts(), lang, ui
+            query_df.limit(globals["MAX_RESULTS"]).to_dicts(), lang, ui
         ),
         globals["cache_header"],
     )
