@@ -57,7 +57,7 @@
   },
   "QUERY_REGEX": {
     "CHS": "正则表达式",
-    "EN": "Regex Expression"
+    "EN": "Regular Expression"
   },
   "QUERY_SEARCH": {
     "CHS": "搜索",
