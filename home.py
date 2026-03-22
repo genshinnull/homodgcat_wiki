@@ -198,4 +198,8 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
             cols_max=1,
         ),
         Meta(name="robots", content="noindex, nofollow"),
+        Meta(
+            name="viewport",
+            content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0",
+        ),
     )

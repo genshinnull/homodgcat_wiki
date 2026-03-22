@@ -6,6 +6,7 @@ import shutil
 
 import httpx
 import polars as pl
+import fasthtml.core
 from fasthtml.common import *
 from monsterui.all import *
 
@@ -96,7 +97,16 @@ async def lifespan(app):
     yield
 
 
-app = FastHTML(hdrs=Theme.blue.headers(), lifespan=lifespan)
+app = FastHTML(
+    default_hdrs=False,
+    hdrs=[
+        Theme.blue.headers(),
+        fasthtml.core.htmxsrc,
+        fasthtml.core.fhjsscr,
+        fasthtml.charset,
+    ],
+    lifespan=lifespan,
+)
 
 
 @app.route("/{lang}", methods="GET")
