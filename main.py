@@ -60,6 +60,13 @@ async def lifespan(app):
                 f.write(httpx.get(f"{DATA_SRC}/GI_Text_{lang}.parquet").content)
     for lang in Langs:
         pl.scan_parquet(temp_dir / f"GI_Talk_{lang}.parquet").with_columns(
+            ((pl.col.talkId.is_not_null()) & (pl.len().over("talkId") > 1)).alias(
+                "talkIdExpandable"
+            ),
+            ((pl.col.questId.is_not_null()) & (pl.len().over("questId") > 1)).alias(
+                "questIdExpandable"
+            ),
+        ).with_columns(
             talkRoleIdName=pl.when(pl.col.talkRoleType == "TALK_ROLE_PLAYER")
             .then(pl.lit(ui["SPEAKER_TALK_ROLE_PLAYER"][lang]))
             .when(pl.col.talkRoleType == "TALK_ROLE_MATE_AVATAR")
@@ -84,7 +91,6 @@ async def lifespan(app):
             talkContentLower=pl.col.talkContent.str.to_lowercase(),
         ).sink_parquet(data_dir / f"GI_Talk_{lang}.parquet")
         talk_data[lang] = pl.scan_parquet(data_dir / f"GI_Talk_{lang}.parquet")
-    for lang in Langs:
         text_data_path = temp_dir / f"GI_Text_{lang}.parquet"
         pl.scan_parquet(text_data_path).with_columns(
             keyLower=pl.col.key.str.to_lowercase(),
@@ -171,6 +177,8 @@ def query_dialog_keyword(
         "chapterTitle",
         "chapterNum",
         "type",
+        "talkIdExpandable",
+        "questIdExpandable",
     )
     try:
         query_df = query_lf.collect()

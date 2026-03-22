@@ -115,13 +115,13 @@ def build_keyword_result(dialogs: list[dict], lang: str, ui: dict):
         talk_collection_triggers = [
             build_collection_query_trigger(lang, ui, i, id=dialog["id"])
         ]
-        if talkId := dialog["talkId"]:
+        if dialog["talkIdExpandable"]:
             talk_collection_triggers.append(
-                build_collection_query_trigger(lang, ui, i, talkId=talkId)
+                build_collection_query_trigger(lang, ui, i, talkId=dialog["talkId"])
             )
-        if questId := dialog["questId"]:
+        if dialog["questIdExpandable"]:
             talk_collection_triggers.append(
-                build_collection_query_trigger(lang, ui, i, questId=questId)
+                build_collection_query_trigger(lang, ui, i, questId=dialog["questId"])
             )
         results.append(
             Li(
