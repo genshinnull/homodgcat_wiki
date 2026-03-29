@@ -95,9 +95,9 @@ async def lifespan(app):
         pl.scan_parquet(text_data_path).with_columns(
             keyLower=pl.col.key.str.to_lowercase(),
             valueLower=pl.col.value.str.to_lowercase(),
-            pagedLower=pl.col.Paged.str.to_lowercase(),
-            bookLower=pl.col.Book.str.to_lowercase(),
-            letterLower=pl.col.Letter.str.to_lowercase(),
+            pagedLower=pl.col.paged.str.to_lowercase(),
+            bookLower=pl.col.book.str.to_lowercase(),
+            letterLower=pl.col.letter.str.to_lowercase(),
         ).sink_parquet(data_dir / f"GI_Text_{lang}.parquet")
         text_data[lang] = pl.scan_parquet(data_dir / f"GI_Text_{lang}.parquet")
     yield
@@ -273,9 +273,9 @@ def query_text_keyword(
         if regex:
             query_lf = query_lf.filter(
                 (pl.col.value.str.contains(value))
-                | (pl.col.Paged.str.contains(value))
-                | (pl.col.Book.str.contains(value))
-                | (pl.col.Letter.str.contains(value))
+                | (pl.col.paged.str.contains(value))
+                | (pl.col.book.str.contains(value))
+                | (pl.col.letter.str.contains(value))
             )
         else:
             value = value.lower()
@@ -302,12 +302,12 @@ def query_text_keyword(
                     "key",
                     "value",
                     "value_right",
-                    "Paged",
-                    "Paged_right",
-                    "Book",
-                    "Book_right",
-                    "Letter",
-                    "Letter_right",
+                    "paged",
+                    "paged_right",
+                    "book",
+                    "book_right",
+                    "letter",
+                    "letter_right",
                     "k_from",
                     "kv_from",
                 )
@@ -319,12 +319,12 @@ def query_text_keyword(
                     "type",
                     "value",
                     "value_right",
-                    "Paged",
-                    "Paged_right",
-                    "Book",
-                    "Book_right",
-                    "Letter",
-                    "Letter_right",
+                    "paged",
+                    "paged_right",
+                    "book",
+                    "book_right",
+                    "letter",
+                    "letter_right",
                     "v_from",
                 )
                 .agg("key")
@@ -334,26 +334,26 @@ def query_text_keyword(
                     "key",
                     "value",
                     "value_right",
-                    "Paged",
-                    "Paged_right",
-                    "Book",
-                    "Book_right",
-                    "Letter",
-                    "Letter_right",
+                    "paged",
+                    "paged_right",
+                    "book",
+                    "book_right",
+                    "letter",
+                    "letter_right",
                     "v_from",
                 )
             )
     else:
         if ungrouped:
             query_lf = query_lf.sort("value", "type").select(
-                "type", "key", "value", "Paged", "Book", "Letter", "k_from", "kv_from"
+                "type", "key", "value", "paged", "book", "letter", "k_from", "kv_from"
             )
         else:
             query_lf = (
-                query_lf.group_by("type", "value", "Paged", "Book", "Letter", "v_from")
+                query_lf.group_by("type", "value", "paged", "book", "letter", "v_from")
                 .agg("key")
                 .sort("value", "type")
-                .select("type", "key", "value", "Paged", "Book", "Letter", "v_from")
+                .select("type", "key", "value", "paged", "book", "letter", "v_from")
             )
     try:
         query_df = query_lf.collect()

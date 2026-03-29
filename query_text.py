@@ -88,7 +88,7 @@ def build_result(text_list: list[dict], lang: str, ui: dict, lang_comp: bool):
         text_content = []
         text_content.append(
             build_base_text(
-                lang, ui, text["value"], text["Paged"], text["Book"], text["Letter"]
+                lang, ui, text["value"], text["paged"], text["book"], text["letter"]
             )
         )
         if lang_comp:
@@ -97,9 +97,9 @@ def build_result(text_list: list[dict], lang: str, ui: dict, lang_comp: bool):
                     lang,
                     ui,
                     text["value_right"],
-                    text["Paged_right"],
-                    text["Book_right"],
-                    text["Letter_right"],
+                    text["paged_right"],
+                    text["book_right"],
+                    text["letter_right"],
                 )
             )
         results.append(
