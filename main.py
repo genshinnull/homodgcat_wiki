@@ -36,69 +36,25 @@ async def lifespan(app):
     globals["MAX_RESULTS"] = 1000
     with open("localization.json") as f:
         ui.update(json.loads(f.read()))
-    temp_dir = Path("temp")
-    shutil.rmtree(temp_dir, ignore_errors=True)
-    temp_dir.mkdir()
     data_dir = Path("data")
     shutil.rmtree(data_dir, ignore_errors=True)
     data_dir.mkdir()
     if (data_src_dir := Path(DATA_SRC)).is_dir():
         for lang in Langs:
-            shutil.copyfile(
-                data_src_dir / f"GI_Talk_{lang}.parquet",
-                temp_dir / f"GI_Talk_{lang}.parquet",
-            )
-            shutil.copyfile(
-                data_src_dir / f"GI_Text_{lang}.parquet",
-                temp_dir / f"GI_Text_{lang}.parquet",
-            )
+            for data_type in ["Talk", "Text"]:
+                shutil.copyfile(
+                    data_src_dir / f"GI_{data_type}_{lang}.parquet",
+                    data_dir / f"GI_{data_type}_{lang}.parquet",
+                )
     else:
         for lang in Langs:
-            with open(temp_dir / f"GI_Talk_{lang}.parquet", "wb") as f:
-                f.write(httpx.get(f"{DATA_SRC}/GI_Talk_{lang}.parquet").content)
-            with open(temp_dir / f"GI_Text_{lang}.parquet", "wb") as f:
-                f.write(httpx.get(f"{DATA_SRC}/GI_Text_{lang}.parquet").content)
+            for data_type in ["Talk", "Text"]:
+                with open(data_dir / f"GI_{data_type}_{lang}.parquet", "wb") as f:
+                    f.write(
+                        httpx.get(f"{DATA_SRC}/GI_{data_type}_{lang}.parquet").content
+                    )
     for lang in Langs:
-        pl.scan_parquet(temp_dir / f"GI_Talk_{lang}.parquet").with_columns(
-            ((pl.col.talkId.is_not_null()) & (pl.len().over("talkId") > 1)).alias(
-                "talkIdExpandable"
-            ),
-            ((pl.col.questId.is_not_null()) & (pl.len().over("questId") > 1)).alias(
-                "questIdExpandable"
-            ),
-        ).with_columns(
-            talkRoleIdName=pl.when(pl.col.talkRoleType == "TALK_ROLE_PLAYER")
-            .then(pl.lit(ui["SPEAKER_TALK_ROLE_PLAYER"][lang]))
-            .when(pl.col.talkRoleType == "TALK_ROLE_MATE_AVATAR")
-            .then(pl.lit(ui["SPEAKER_TALK_ROLE_MATE_AVATAR"][lang]))
-            .when(
-                pl.col.talkRoleIdName.str.contains(
-                    r"^\#\{REALNAME\[ID\(1\)\|\w+\(\w+\)\]\}$"
-                )
-            )
-            .then(pl.lit(ui["SPEAKER_REALNAME_ID_1"][lang]))
-            .when(
-                pl.col.talkRoleIdName.str.contains(
-                    r"^\#\{REALNAME\[ID\(2\)\|\w+\(\w+\)\]\}$"
-                )
-            )
-            .then(pl.lit(ui["SPEAKER_REALNAME_ID_2"][lang]))
-            .otherwise(pl.col.talkRoleIdName)
-        ).with_columns(
-            talkRoleIdNameLower=pl.col.talkRoleIdName.str.to_lowercase(),
-            talkRoleNameLower=pl.col.talkRoleName.str.to_lowercase(),
-            talkTitleLower=pl.col.talkTitle.str.to_lowercase(),
-            talkContentLower=pl.col.talkContent.str.to_lowercase(),
-        ).sink_parquet(data_dir / f"GI_Talk_{lang}.parquet")
         talk_data[lang] = pl.scan_parquet(data_dir / f"GI_Talk_{lang}.parquet")
-        text_data_path = temp_dir / f"GI_Text_{lang}.parquet"
-        pl.scan_parquet(text_data_path).with_columns(
-            keyLower=pl.col.key.str.to_lowercase(),
-            valueLower=pl.col.value.str.to_lowercase(),
-            pagedLower=pl.col.paged.str.to_lowercase(),
-            bookLower=pl.col.book.str.to_lowercase(),
-            letterLower=pl.col.letter.str.to_lowercase(),
-        ).sink_parquet(data_dir / f"GI_Text_{lang}.parquet")
         text_data[lang] = pl.scan_parquet(data_dir / f"GI_Text_{lang}.parquet")
     yield
 
