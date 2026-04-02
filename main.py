@@ -11,7 +11,7 @@ import polars as pl
 from fasthtml.common import *
 from monsterui.all import *
 
-import alert
+import common
 import home
 import query_dialog
 import query_text
@@ -94,7 +94,10 @@ def query_dialog_keyword(
     lang: Langs, speaker: str, content: str, new: bool = False, regex: bool = False
 ):
     if not speaker and not content:
-        return (alert.build("error", ui["ALERT_EMPTY"][lang]), globals["cache_header"])
+        return (
+            common.build_alert("error", ui["ALERT_EMPTY"][lang]),
+            globals["cache_header"],
+        )
     globals["logger"].info(f"Dialog query: {speaker=}, {content=}")
     query_lf = talk_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
@@ -142,19 +145,22 @@ def query_dialog_keyword(
     try:
         query_df = query_lf.collect()
     except pl.exceptions.ComputeError as e:
-        return (alert.build("error", str(e)), globals["cache_header"])
+        return (common.build_alert("error", str(e)), globals["cache_header"])
     assert isinstance(query_df, pl.DataFrame)
     result_len = len(query_df)
     if result_len == 0:
-        return (alert.build("error", ui["ALERT_NONE"][lang]), globals["cache_header"])
+        return (
+            common.build_alert("error", ui["ALERT_NONE"][lang]),
+            globals["cache_header"],
+        )
     elif result_len < globals["MAX_RESULTS"]:
         return (
-            alert.build("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
+            common.build_alert("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
             query_dialog.build_keyword_result(query_df.to_dicts(), lang, ui),
             globals["cache_header"],
         )
     return (
-        alert.build(
+        common.build_alert(
             "warning",
             ui["ALERT_OVERFLOW"][lang].format(globals["MAX_RESULTS"], result_len),
         ),
@@ -217,7 +223,10 @@ def query_text_keyword(
     ungrouped: bool = False,
 ):
     if (not key and not value) or (no_textmap and no_readable and no_subtitle):
-        return (alert.build("error", ui["ALERT_EMPTY"][lang]), globals["cache_header"])
+        return (
+            common.build_alert("error", ui["ALERT_EMPTY"][lang]),
+            globals["cache_header"],
+        )
     globals["logger"].info(f"Text query: {key=}, {value=}")
     query_lf = text_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
@@ -318,20 +327,23 @@ def query_text_keyword(
     try:
         query_df = query_lf.collect()
     except pl.exceptions.ComputeError as e:
-        return (alert.build("error", str(e)), globals["cache_header"])
+        return (common.build_alert("error", str(e)), globals["cache_header"])
     assert isinstance(query_df, pl.DataFrame)
     result_len = len(query_df)
     if result_len == 0:
-        return (alert.build("error", ui["ALERT_NONE"][lang]), globals["cache_header"])
+        return (
+            common.build_alert("error", ui["ALERT_NONE"][lang]),
+            globals["cache_header"],
+        )
     elif result_len < globals["MAX_RESULTS"]:
         return (
-            alert.build("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
+            common.build_alert("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
             query_text.build_result(query_df.to_dicts(), lang, ui, lang_comp != "-"),
             globals["cache_header"],
         )
     else:
         return (
-            alert.build(
+            common.build_alert(
                 "warning",
                 ui["ALERT_OVERFLOW"][lang].format(globals["MAX_RESULTS"], result_len),
             ),

@@ -2,7 +2,7 @@ from fasthtml.common import *
 from monsterui.all import *
 
 
-def build(
+def build_alert(
     level: str,
     msg: str,
 ):
