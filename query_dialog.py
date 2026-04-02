@@ -19,10 +19,12 @@ def build_base_dialog(
             talkRoleIdName = talkRoleName
     talk_speaker = []
     if talkRoleIdName:
-        talk_speaker.append(P(talkRoleIdName, cls=[TextT.bold, "text-wrap break-all"]))
+        talk_speaker.append(
+            P(talkRoleIdName, cls=[TextT.bold, "text-wrap break-words"])
+        )
     if talkTitle:
         talk_speaker.append(
-            P(talkTitle, cls=[TextT.muted, TextT.xs, "text-wrap break-all"])
+            P(talkTitle, cls=[TextT.muted, TextT.xs, "text-wrap break-words"])
         )
     return (
         DivHStacked(
@@ -33,7 +35,7 @@ def build_base_dialog(
             P(talkRoleType, cls=TextT.muted),
             cls="space-x-2",
         ),
-        P(talkContent, cls="whitespace-pre-line text-wrap break-all")
+        P(talkContent, cls="whitespace-pre-line text-wrap break-words")
         if talkContent
         else None,
     )
@@ -138,7 +140,7 @@ def build_keyword_result(dialogs: list[dict], lang: str, ui: dict):
                         ),
                         P(
                             talk_collection_names,
-                            cls=[TextT.muted, TextT.xs, "text-wrap break-all"],
+                            cls=[TextT.muted, TextT.xs, "text-wrap break-words"],
                         )
                         if talk_collection_names
                         else None,

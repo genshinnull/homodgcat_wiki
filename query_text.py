@@ -12,12 +12,12 @@ def build_base_text(
 ):
     readable_name = " - ".join([name for name in [paged, book, letter] if name])
     return Div(
-        P(readable_name, cls=[TextT.primary, "text-wrap break-all"])
+        P(readable_name, cls=[TextT.primary, "text-wrap break-words"])
         if readable_name
         else None,
         P(
             value,
-            cls="whitespace-pre-line text-wrap break-all",
+            cls="whitespace-pre-line text-wrap break-words",
         ),
         cls="space-y-1",
     )
