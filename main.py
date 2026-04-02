@@ -1,12 +1,13 @@
 import contextlib
 import functools
 import json
+import logging
 import os
 import shutil
 
+import fasthtml.core
 import httpx
 import polars as pl
-import fasthtml.core
 from fasthtml.common import *
 from monsterui.all import *
 
@@ -34,6 +35,7 @@ async def lifespan(app):
         "Cache-Control", f"max-age={CACHE_MAX_AGE}" if CACHE_MAX_AGE else "no-store"
     )
     globals["MAX_RESULTS"] = 1000
+    globals["logger"] = logging.getLogger("uvicorn.info")
     with open("localization.json") as f:
         ui.update(json.loads(f.read()))
     data_dir = Path("data")
@@ -93,6 +95,7 @@ def query_dialog_keyword(
 ):
     if not speaker and not content:
         return (alert.build("error", ui["ALERT_EMPTY"][lang]), globals["cache_header"])
+    globals["logger"].info(f"Dialog query: {speaker=}, {content=}")
     query_lf = talk_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if new:
@@ -215,6 +218,7 @@ def query_text_keyword(
 ):
     if (not key and not value) or (no_textmap and no_readable and no_subtitle):
         return (alert.build("error", ui["ALERT_EMPTY"][lang]), globals["cache_header"])
+    globals["logger"].info(f"Text query: {key=}, {value=}")
     query_lf = text_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if new:
