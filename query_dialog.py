@@ -1,6 +1,8 @@
 from fasthtml.common import *
 from monsterui.all import *
 
+import common
+
 
 def build_base_dialog(
     id: int,
@@ -35,9 +37,7 @@ def build_base_dialog(
             P(talkRoleType, cls=TextT.muted),
             cls="space-x-2",
         ),
-        P(talkContent, cls="whitespace-pre-line text-wrap break-words")
-        if talkContent
-        else None,
+        common.build_text(talkContent) if talkContent else None,
     )
 
 

@@ -1,3 +1,5 @@
+import re
+
 from fasthtml.common import *
 from monsterui.all import *
 
@@ -23,3 +25,24 @@ def build_alert(
         ),
         cls=alert_cls,
     )
+
+
+def build_text(
+    text: str,
+):
+    def build_ruby(match: re.Match):
+        return (
+            "<ruby>"
+            + match.group(1)
+            + "<rp>]</rp>"
+            + "<rt>"
+            + match.group(2)
+            + "</rt>"
+            + "<rp>]</rp>"
+            + "</ruby>"
+        )
+
+    text = text.replace("\n", "<br>")
+    for match in re.finditer(r"(.)\{RUBY\#\[\w\](.*?)\}", text):
+        text = text.replace(match.group(0), build_ruby(match))
+    return P(NotStr(text), cls="text-wrap break-words")
