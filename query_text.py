@@ -43,7 +43,7 @@ def build_text_key(lang: str, ui: dict, key: str | list[str], i: int):
                     cls=AT.text,
                 ),
                 Modal(
-                    ", ".join(key),
+                    P(", ".join(key), cls="text-wrap break-all"),
                     id=f"modal-{i}",
                     footer=ModalCloseButton(
                         cls=[
