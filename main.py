@@ -357,4 +357,4 @@ def query_text_keyword(
         )
 
 
-serve(reload_includes=["*.py", "*.json"])
+serve(reload=False)
