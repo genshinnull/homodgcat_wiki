@@ -5,8 +5,6 @@ import common
 
 
 def build_base_text(
-    lang: str,
-    ui: dict,
     value: str,
     paged: str,
     book: str,
@@ -81,20 +79,29 @@ def build_text_window(lang: str, ui: dict, k_from: str, kv_from: str, v_from: st
     )
 
 
-def build_result(text_list: list[dict], lang: str, ui: dict, lang_comp: bool):
+def build_result(
+    text_list: list[dict],
+    lang: str,
+    ui: dict,
+    lang_comp: bool,
+    lit_value_keyword: str | None = None,
+):
     results = []
     for i, text in enumerate(text_list):
         text_content = []
         text_content.append(
             build_base_text(
-                lang, ui, text["value"], text["paged"], text["book"], text["letter"]
+                common.build_literal_highlight(text["value"], lit_value_keyword)
+                if lit_value_keyword
+                else text["value"],
+                text["paged"],
+                text["book"],
+                text["letter"],
             )
         )
         if lang_comp:
             text_content.append(
                 build_base_text(
-                    lang,
-                    ui,
                     text["value_right"],
                     text["paged_right"],
                     text["book_right"],

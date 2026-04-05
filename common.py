@@ -27,10 +27,19 @@ def build_alert(
     )
 
 
+def build_literal_highlight(text: str, keyword: str) -> str:
+    for match in set(re.findall(keyword, text, flags=re.IGNORECASE)):
+        text = text.replace(
+            match,
+            f"<mark>{match}</mark>",
+        )
+    return text
+
+
 def build_text(
     text: str,
 ):
-    def build_ruby(match: re.Match):
+    def convert_ruby(match: re.Match):
         return (
             "<ruby>"
             + match.group(1)
@@ -42,7 +51,11 @@ def build_text(
             + "</ruby>"
         )
 
+    def convert_highlight(match: re.Match):
+        return to_xml(Mark(match.group(1)))
+
     text = text.replace("\n", "<br>")
+    text = re.sub(r"<mark>(.*?)</mark>", convert_highlight, text)
     for match in re.finditer(r"(.)\{RUBY\#\[\w\](.*?)\}", text):
-        text = text.replace(match.group(0), build_ruby(match))
+        text = text.replace(match.group(0), convert_ruby(match))
     return P(NotStr(text), cls="text-wrap break-words")
