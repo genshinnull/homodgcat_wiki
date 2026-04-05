@@ -56,8 +56,8 @@
     "EN": "More Options"
   },
   "QUERY_REGEX": {
-    "CHS": "正则表达式",
-    "EN": "Regular Expression"
+    "CHS": "正则表达式 (Rust)",
+    "EN": "Regular Expression (Rust)"
   },
   "QUERY_SEARCH": {
     "CHS": "搜索",
