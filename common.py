@@ -27,15 +27,6 @@ def build_alert(
     )
 
 
-def build_literal_highlight(text: str, keyword: str) -> str:
-    for match in set(re.findall(keyword, text, flags=re.IGNORECASE)):
-        text = text.replace(
-            match,
-            f"<mark>{match}</mark>",
-        )
-    return text
-
-
 def build_text(
     text: str,
 ):

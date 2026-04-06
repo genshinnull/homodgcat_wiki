@@ -61,6 +61,15 @@ async def lifespan(app):
     yield
 
 
+def _build_literal_highlight(text: str, keyword: str) -> str:
+    for match in set(re.findall(keyword, text, flags=re.IGNORECASE)):
+        text = text.replace(
+            match,
+            f"<mark>{match}</mark>",
+        )
+    return text
+
+
 app = FastHTML(
     default_hdrs=False,
     hdrs=[
@@ -151,7 +160,12 @@ def query_dialog_keyword(
     except pl.exceptions.ComputeError as e:
         return (common.build_alert("error", str(e)), globals["cache_header"])
     assert isinstance(query_df, pl.DataFrame)
-    lit_content_keyword = content if content and not regex else None
+    if content and not regex:
+        query_df = query_df.with_columns(
+            pl.col.talkContent.map_elements(
+                lambda x: _build_literal_highlight(x, content), return_dtype=pl.String
+            )
+        )
     result_len = len(query_df)
     if result_len == 0:
         return (
@@ -165,7 +179,6 @@ def query_dialog_keyword(
                 query_df.to_dicts(),
                 lang,
                 ui,
-                lit_content_keyword,
             ),
             globals["cache_header"],
         )
@@ -178,7 +191,6 @@ def query_dialog_keyword(
             query_df.limit(globals["MAX_RESULTS"]).to_dicts(),
             lang,
             ui,
-            lit_content_keyword,
         ),
         globals["cache_header"],
     )
@@ -344,7 +356,12 @@ def query_text_keyword(
     except pl.exceptions.ComputeError as e:
         return (common.build_alert("error", str(e)), globals["cache_header"])
     assert isinstance(query_df, pl.DataFrame)
-    lit_value_keyword = value if value and not regex else None
+    if value and not regex:
+        query_df = query_df.with_columns(
+            pl.col.value.map_elements(
+                lambda x: _build_literal_highlight(x, value), return_dtype=pl.String
+            )
+        )
     result_len = len(query_df)
     if result_len == 0:
         return (
@@ -354,9 +371,7 @@ def query_text_keyword(
     elif result_len < globals["MAX_RESULTS"]:
         return (
             common.build_alert("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
-            query_text.build_result(
-                query_df.to_dicts(), lang, ui, lang_comp != "-", lit_value_keyword
-            ),
+            query_text.build_result(query_df.to_dicts(), lang, ui, lang_comp != "-"),
             globals["cache_header"],
         )
     else:
@@ -370,7 +385,6 @@ def query_text_keyword(
                 lang,
                 ui,
                 lang_comp != "-",
-                lit_value_keyword,
             ),
             globals["cache_header"],
         )

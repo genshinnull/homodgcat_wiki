@@ -95,9 +95,7 @@ def build_collection_query_trigger(
     )
 
 
-def build_keyword_result(
-    dialogs: list[dict], lang: str, ui: dict, lit_content_keyword: str | None = None
-):
+def build_keyword_result(dialogs: list[dict], lang: str, ui: dict):
     results = []
     for i, dialog in enumerate(dialogs):
         talk_collection_names = []
@@ -136,11 +134,7 @@ def build_keyword_result(
                             dialog["talkRoleIdName"],
                             dialog["talkRoleName"],
                             dialog["talkTitle"],
-                            common.build_literal_highlight(
-                                dialog["talkContent"], lit_content_keyword
-                            )
-                            if lit_content_keyword
-                            else dialog["talkContent"],
+                            dialog["talkContent"],
                             dialog["talkRoleType"],
                             dialog["type"],
                         ),

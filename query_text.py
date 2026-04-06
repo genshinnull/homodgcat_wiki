@@ -84,16 +84,13 @@ def build_result(
     lang: str,
     ui: dict,
     lang_comp: bool,
-    lit_value_keyword: str | None = None,
 ):
     results = []
     for i, text in enumerate(text_list):
         text_content = []
         text_content.append(
             build_base_text(
-                common.build_literal_highlight(text["value"], lit_value_keyword)
-                if lit_value_keyword
-                else text["value"],
+                text["value"],
                 text["paged"],
                 text["book"],
                 text["letter"],
