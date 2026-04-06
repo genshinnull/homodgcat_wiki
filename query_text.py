@@ -1,7 +1,7 @@
 from fasthtml.common import *
 from monsterui.all import *
 
-import common
+import utils
 
 
 def build_base_text(
@@ -15,7 +15,7 @@ def build_base_text(
         P(readable_name, cls=[TextT.primary, "text-wrap break-words"])
         if readable_name
         else None,
-        common.build_text(value) if value else None,
+        utils.build_text(value) if value else None,
         cls="space-y-1",
     )
 
