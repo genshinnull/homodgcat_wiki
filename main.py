@@ -61,13 +61,11 @@ async def lifespan(app):
     yield
 
 
-def _build_literal_highlight(text: str, keyword: str) -> str:
-    for match in set(re.findall(keyword, text, flags=re.IGNORECASE)):
-        text = text.replace(
-            match,
-            f"<mark>{match}</mark>",
-        )
-    return text
+def _build_highlight(expr: pl.Expr, keyword: str, regex: bool) -> pl.Expr:
+    return expr.str.replace_all(
+        rf"({keyword})" if regex else rf"(?i)({pl.escape_regex(keyword)})",
+        r"<mark>$0</mark>",
+    )
 
 
 app = FastHTML(
@@ -128,16 +126,15 @@ def query_dialog_keyword(
             )
     if content:
         if regex:
-            query_lf = query_lf.filter(
-                pl.col.talkContent.str.contains(content)
-            ).with_columns(
-                pl.col.talkContent.str.replace_all(rf"({content})", r"<mark>$0</mark>")
-            )
+            query_lf = query_lf.filter(pl.col.talkContent.str.contains(content))
         else:
             content_lower = content.lower()
             query_lf = query_lf.filter(
                 pl.col.talkContentLower.str.contains(content_lower, literal=True)
             )
+        query_lf = query_lf.with_columns(
+            pl.col.talkContent.pipe(_build_highlight, content, regex)
+        )
     query_lf = query_lf.select(
         "id",
         "talkRoleIdName",
@@ -160,12 +157,6 @@ def query_dialog_keyword(
     except pl.exceptions.ComputeError as e:
         return (utils.build_alert("error", str(e)), globals["cache_header"])
     assert isinstance(query_df, pl.DataFrame)
-    if content and not regex:
-        query_df = query_df.with_columns(
-            pl.col.talkContent.map_elements(
-                lambda x: _build_literal_highlight(x, content), return_dtype=pl.String
-            )
-        )
     result_len = len(query_df)
     if result_len == 0:
         return (
@@ -270,8 +261,6 @@ def query_text_keyword(
                 | (pl.col.paged.str.contains(value))
                 | (pl.col.book.str.contains(value))
                 | (pl.col.letter.str.contains(value))
-            ).with_columns(
-                pl.col.value.str.replace_all(rf"({value})", r"<mark>$0</mark>"),
             )
         else:
             value_lower = value.lower()
@@ -281,6 +270,9 @@ def query_text_keyword(
                 | (pl.col.bookLower.str.contains(value_lower, literal=True))
                 | (pl.col.letterLower.str.contains(value_lower, literal=True))
             )
+        query_lf = query_lf.with_columns(
+            pl.col.value.pipe(_build_highlight, value, regex),
+        )
     if no_textmap:
         query_lf = query_lf.filter(pl.col.type != "TextMap")
     if no_readable:
@@ -356,12 +348,6 @@ def query_text_keyword(
     except pl.exceptions.ComputeError as e:
         return (utils.build_alert("error", str(e)), globals["cache_header"])
     assert isinstance(query_df, pl.DataFrame)
-    if value and not regex:
-        query_df = query_df.with_columns(
-            pl.col.value.map_elements(
-                lambda x: _build_literal_highlight(x, value), return_dtype=pl.String
-            )
-        )
     result_len = len(query_df)
     if result_len == 0:
         return (
