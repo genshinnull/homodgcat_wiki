@@ -56,7 +56,9 @@ def build_collection_query_trigger(
         modal_title = f"IDs {id - 100} - {id + 100}"
     elif talkId:
         suffix = "-talkId"
-        link_title = ui["RESULT_DIALOG_EXPAND_TALK"][lang] + f" (talkId={talkId})"
+        link_title = ui["RESULT_DIALOG_EXPAND_TALK"][lang]
+        if talkId > 0:
+            link_title += f" (talkId={talkId})"
         hx_vals = {"talkId": talkId}
         modal_title = f"TalkID {talkId}"
     elif questId:
