@@ -198,7 +198,7 @@ def query_dialog_collection(
     query_lf = talk_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if id:
-        query_lf = query_lf.filter(pl.col.id.is_between(id - 100, id + 100))
+        query_lf = query_lf.filter(pl.col.id.is_between(id, id + 299))
     elif talkId:
         query_lf = query_lf.filter(pl.col.talkId == talkId)
     elif questId:

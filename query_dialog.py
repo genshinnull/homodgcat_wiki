@@ -51,9 +51,10 @@ def build_collection_query_trigger(
 ):
     if id:
         suffix = "-id"
-        link_title = ui["RESULT_DIALOG_EXPAND_ID"][lang] + f" (id={id}±100)"
+        id = max(id - id % 100 - 100, 0)
+        link_title = ui["RESULT_DIALOG_EXPAND_ID"][lang] + f" (id={id}-{id + 299})"
         hx_vals = {"id": id}
-        modal_title = f"IDs {id - 100} - {id + 100}"
+        modal_title = f"IDs {id}-{id + 299}"
     elif talkId:
         suffix = "-talkId"
         link_title = ui["RESULT_DIALOG_EXPAND_TALK"][lang]
