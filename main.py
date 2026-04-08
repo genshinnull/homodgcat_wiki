@@ -106,6 +106,8 @@ def query_dialog_keyword(
             globals["cache_header"],
         )
     globals["logger"].info(f"Dialog query: {speaker=}, {content=}")
+    speaker = speaker.strip()
+    content = content.strip()
     query_lf = talk_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if new:
@@ -244,6 +246,8 @@ def query_text_keyword(
             globals["cache_header"],
         )
     globals["logger"].info(f"Text query: {key=}, {value=}")
+    key = key.strip()
+    value = value.strip()
     query_lf = text_data[lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if new:
