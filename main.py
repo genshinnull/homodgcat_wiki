@@ -232,7 +232,8 @@ def query_text_keyword(
     lang: Langs,
     key: str,
     value: str,
-    lang_comp: str,
+    target_lang: str,
+    comp_lang: str,
     no_textmap: bool = False,
     no_readable: bool = False,
     no_subtitle: bool = False,
@@ -245,10 +246,15 @@ def query_text_keyword(
             utils.build_alert("error", ui["ALERT_EMPTY"][lang]),
             globals["cache_header"],
         )
+    if target_lang == comp_lang:
+        return (
+            utils.build_alert("error", ui["ALERT_SAME_LANG"][lang]),
+            globals["cache_header"],
+        )
     globals["logger"].info(f"Text query: {key=}, {value=}")
     key = key.strip()
     value = value.strip()
-    query_lf = text_data[lang]
+    query_lf = text_data[target_lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if new:
         query_lf = query_lf.filter(pl.col.v_from == pl.col.v_from.max())
@@ -283,8 +289,8 @@ def query_text_keyword(
         query_lf = query_lf.filter(pl.col.type != "Readable")
     if no_subtitle:
         query_lf = query_lf.filter(pl.col.type != "Subtitle")
-    if lang_comp != "-":
-        comp_df = text_data[lang_comp]
+    if comp_lang != "-":
+        comp_df = text_data[comp_lang]
         if ungrouped:
             query_lf = (
                 query_lf.join(comp_df, on=["type", "key"], how="left")
@@ -361,7 +367,7 @@ def query_text_keyword(
     elif result_len < globals["MAX_RESULTS"]:
         return (
             utils.build_alert("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
-            query_text.build_result(query_df.to_dicts(), lang, ui, lang_comp != "-"),
+            query_text.build_result(query_df.to_dicts(), lang, ui, comp_lang != "-"),
             globals["cache_header"],
         )
     else:
@@ -374,7 +380,7 @@ def query_text_keyword(
                 query_df.limit(globals["MAX_RESULTS"]).to_dicts(),
                 lang,
                 ui,
-                lang_comp != "-",
+                comp_lang != "-",
             ),
             globals["cache_header"],
         )

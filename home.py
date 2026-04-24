@@ -3,8 +3,11 @@ from monsterui.all import *
 
 
 def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
-    langs_for_comp = ["-", *langs.copy()]
-    langs_for_comp.remove(lang)
+    comp_langs = langs.copy()
+    comp_langs.insert(0, "-")
+    target_langs = langs.copy()
+    target_langs.remove(lang)
+    target_langs.insert(0, lang)
     return (
         Title(ui["PAGE_TITLE"][lang]),
         NavBar(
@@ -96,12 +99,21 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
                                 ),
                                 LabelSelect(
                                     Options(
-                                        *langs_for_comp,
+                                        *target_langs,
                                         selected_idx=0,
                                     ),
-                                    label=ui["QUERY_TEXT_LANG_COMP"][lang],
-                                    id="lang_comp",
+                                    label=ui["QUERY_TEXT_TARGET_LANG"][lang],
+                                    id="target_lang",
                                 ),
+                                LabelSelect(
+                                    Options(
+                                        *comp_langs,
+                                        selected_idx=0,
+                                    ),
+                                    label=ui["QUERY_TEXT_COMP_LANG"][lang],
+                                    id="comp_lang",
+                                ),
+                                cols_max=2,
                             ),
                             P(ui["QUERY_EXCLUDE"][lang], cls=TextT.bold),
                             Grid(

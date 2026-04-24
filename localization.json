@@ -11,6 +11,10 @@
     "CHS": "结果过多, 返回共 {1} 条中的前 {0} 条.",
     "EN": "Too many results, returning the first {0} of {1}."
   },
+  "ALERT_SAME_LANG": {
+    "CHS": "目标语言和对比语言不能相同.",
+    "EN": "Target language and comparison language cannot be the same."
+  },
   "ALERT_SUCCESS": {
     "CHS": "找到 {} 条结果.",
     "EN": "Found {} results."
@@ -71,6 +75,10 @@
     "CHS": "全文本",
     "EN": "All Text"
   },
+  "QUERY_TEXT_COMP_LANG": {
+    "CHS": "对比语言",
+    "EN": "Comparison Language"
+  },
   "QUERY_TEXT_EXCLUDE": {
     "CHS": "排除类型",
     "EN": "Exclude Types"
@@ -83,13 +91,13 @@
     "CHS": "哈希值或文件名(不含扩展名)",
     "EN": "Hash or Filename (No Extension)"
   },
-  "QUERY_TEXT_LANG_COMP": {
-    "CHS": "对比语言",
-    "EN": "Language to Compare"
-  },
   "QUERY_TEXT_NEW": {
     "CHS": "仅新增值",
     "EN": "New Values Only"
+  },
+  "QUERY_TEXT_TARGET_LANG": {
+    "CHS": "目标语言",
+    "EN": "Target Language"
   },
   "QUERY_TEXT_UNGROUPED": {
     "CHS": "不合并相同值",
