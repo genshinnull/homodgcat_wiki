@@ -130,15 +130,18 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
                                 ),
                             ),
                             DivCentered(
-                                Button(
-                                    UkIcon("search"),
-                                    P(ui["QUERY_SEARCH"][lang]),
-                                    cls=[
-                                        "space-x-2",
-                                        ButtonT.primary,
-                                    ],
-                                    hx_indicator="#q-text-loading",
-                                ),
+                                DivHStacked(
+                                    Button(
+                                        UkIcon("search"),
+                                        P(ui["QUERY_SEARCH"][lang]),
+                                        cls=[
+                                            "space-x-2",
+                                            ButtonT.primary,
+                                        ],
+                                        hx_indicator="#q-text-loading",
+                                    ),
+                                    LabelSwitch(ui["QUERY_BETA"][lang], id="beta"),
+                                )
                             ),
                             DivCentered(
                                 Loading(

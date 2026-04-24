@@ -1,4 +1,8 @@
 {
+  "ALERT_BETA_UNAVAILABLE": {
+    "CHS": "测试服数据不可用.",
+    "EN": "Beta version data is unavailable."
+  },
   "ALERT_EMPTY": {
     "CHS": "请求为空.",
     "EN": "Empty request."
@@ -34,6 +38,10 @@
   "PAGE_USE_LANG": {
     "CHS": "简体中文",
     "EN": "English"
+  },
+  "QUERY_BETA": {
+    "CHS": "测试服",
+    "EN": "Beta"
   },
   "QUERY_DIALOG_CONTENT": {
     "CHS": "内容",

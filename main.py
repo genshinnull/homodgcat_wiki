@@ -23,12 +23,13 @@ Langs = str_enum("Langs", *os.environ["LANGS"].split(","))
 globals = {}
 ui = {}
 talk_data = {}
-text_data = {}
+text_data = {"REL": {}, "BETA": {}}
 
 
 @contextlib.asynccontextmanager
 async def lifespan(app):
     DATA_SRC = os.environ["DATA_SRC"]
+    BETA = os.environ.get("BETA", False)
     globals["CURR_VER"] = os.environ["CURR_VER"]
     CACHE_MAX_AGE = os.environ.get("CACHE_MAX_AGE", None)
     globals["cache_header"] = HttpHeader(
@@ -48,6 +49,11 @@ async def lifespan(app):
                     data_src_dir / f"GI_{data_type}_{lang}.parquet",
                     data_dir / f"GI_{data_type}_{lang}.parquet",
                 )
+            if BETA:
+                shutil.copyfile(
+                    data_src_dir / f"GI_Text_Beta_{lang}.parquet",
+                    data_dir / f"GI_Text_Beta_{lang}.parquet",
+                )
     else:
         for lang in Langs:
             for data_type in ["Talk", "Text"]:
@@ -55,9 +61,19 @@ async def lifespan(app):
                     f.write(
                         httpx.get(f"{DATA_SRC}/GI_{data_type}_{lang}.parquet").content
                     )
+            if BETA:
+                with open(data_dir / f"GI_Text_Beta_{lang}.parquet", "wb") as f:
+                    f.write(
+                        httpx.get(f"{DATA_SRC}/GI_Text_Beta_{lang}.parquet").content
+                    )
+
     for lang in Langs:
         talk_data[lang] = pl.scan_parquet(data_dir / f"GI_Talk_{lang}.parquet")
-        text_data[lang] = pl.scan_parquet(data_dir / f"GI_Text_{lang}.parquet")
+        text_data["REL"][lang] = pl.scan_parquet(data_dir / f"GI_Text_{lang}.parquet")
+        if BETA:
+            text_data["BETA"][lang] = pl.scan_parquet(
+                data_dir / f"GI_Text_Beta_{lang}.parquet"
+            )
     yield
 
 
@@ -240,6 +256,7 @@ def query_text_keyword(
     new: bool = False,
     regex: bool = False,
     ungrouped: bool = False,
+    beta: bool = False,
 ):
     if (not key and not value) or (no_textmap and no_readable and no_subtitle):
         return (
@@ -254,7 +271,16 @@ def query_text_keyword(
     globals["logger"].info(f"Text query: {key=}, {value=}")
     key = key.strip()
     value = value.strip()
-    query_lf = text_data[target_lang]
+    if beta:
+        if text_data.get("BETA"):
+            query_lf = text_data["BETA"][target_lang]
+        else:
+            return (
+                utils.build_alert("error", ui["ALERT_BETA_UNAVAILABLE"][lang]),
+                globals["cache_header"],
+            )
+    else:
+        query_lf = text_data["REL"][target_lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if new:
         query_lf = query_lf.filter(pl.col.v_from == pl.col.v_from.max())
@@ -290,7 +316,7 @@ def query_text_keyword(
     if no_subtitle:
         query_lf = query_lf.filter(pl.col.type != "Subtitle")
     if comp_lang != "-":
-        comp_df = text_data[comp_lang]
+        comp_df = text_data["BETA" if beta else "REL"][comp_lang]
         if ungrouped:
             query_lf = (
                 query_lf.join(comp_df, on=["type", "key"], how="left")
