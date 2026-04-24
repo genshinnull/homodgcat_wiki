@@ -204,8 +204,30 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str):
                 id="q-main-result",
                 cls="w-full md:max-w-screen-md gap-3",
             ),
-            P(
-                ui["PAGE_FOOTER"][lang],
+            DivCentered(
+                P(ui["PAGE_FOOTER"][lang]),
+                P(
+                    "REL data from ",
+                    A(
+                        "Dimbreath",
+                        href="https://github.com/DimbreathBot/AnimeGameData",
+                        target="_blank",
+                    ),
+                    Br(),
+                    "BETA data from ",
+                    A(
+                        "Kuroo",
+                        href="https://gitlab.com/GuraFoundation/YuanShenResources",
+                        target="_blank",
+                    ),
+                    Br(),
+                    "BETA Readable data from ",
+                    A(
+                        "Gen",
+                        href="https://gitlab.com/R4nggaa/anime-book",
+                        target="_blank",
+                    ),
+                ),
                 cls=["relative bottom-0", TextT.muted, TextT.xs],
             ),
             cls="m-5 gap-5",
