@@ -2,19 +2,13 @@
 name = "homodgcat_wiki"
 version = "0.0.0"
 requires-python = ">=3.14"
-dependencies = [
-    "httpx[socks]>=0.28.1",
-    "monsterui>=1.0.42",
-    "polars>=1.37.1",
-    "python-fasthtml>=0.12.39",
-    "starlette<1.0.0",
-]
+dependencies = ["monsterui", "polars", "python-fasthtml"]
 
 [dependency-groups]
-dev = ["ruff>=0.14.14", "ty>=0.0.13"]
+dev = ["ruff", "ty"]
 
 [tool.ruff.lint]
 ignore = [
-    "F403", # undefined-local-with-import-star
-    "F405", # undefined-local-with-import-star-usage
+  "F403", # undefined-local-with-import-star
+  "F405", # undefined-local-with-import-star-usage
 ]

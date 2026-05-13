@@ -1,4 +1,3 @@
-import contextlib
 import functools
 import json
 import logging
@@ -26,7 +25,6 @@ talk_data = {}
 text_data = {}
 
 
-@contextlib.asynccontextmanager
 async def lifespan(app):
     DATA_SRC = os.environ["DATA_SRC"]
     globals["CURR_VER"] = os.environ["CURR_VER"]
