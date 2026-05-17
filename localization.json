@@ -155,6 +155,10 @@
     "CHS": "展开完整对话",
     "EN": "Expand full talk"
   },
+  "RESULT_TEXT_DELETED": {
+    "CHS": "已删除的文本",
+    "EN": "Deleted text"
+  },
   "RESULT_TEXT_EXPAND_KEY": {
     "CHS": "{} 相同文本",
     "EN": "{} Identical Entries"

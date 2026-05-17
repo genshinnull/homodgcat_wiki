@@ -308,17 +308,19 @@ def query_text_keyword(
         query_lf = query_lf.filter(pl.col.type != "Readable")
     if no_subtitle:
         query_lf = query_lf.filter(pl.col.type != "Subtitle")
+    query_lf = query_lf.filter(pl.col.kv_from <= max_ver).with_columns(
+        (pl.col.kv_to < max_ver).alias("deleted")
+    )
     if comp_lang:
         comp_df = text_data[comp_lang]
         if ungrouped:
-            query_lf = query_lf.filter(pl.col.kv_from <= max_ver)
             if min_ver:
                 query_lf = query_lf.filter(min_ver <= pl.col.kv_from)
             if not include_deleted:
-                query_lf = query_lf.filter(pl.col.kv_to >= max_ver)
+                query_lf = query_lf.filter(~pl.col.deleted)
             query_lf = (
                 query_lf.join(comp_df, on=["type", "key"], how="left")
-                .sort("value", "type")
+                .sort("value", "type", "deleted")
                 .select(
                     "type",
                     "key",
@@ -332,14 +334,14 @@ def query_text_keyword(
                     "letter_right",
                     "k_from",
                     "kv_from",
+                    "deleted",
                 )
             )
         else:
-            query_lf = query_lf.filter(pl.col.kv_from <= max_ver)
             if min_ver:
                 query_lf = query_lf.filter(min_ver <= pl.col.v_from)
             if not include_deleted:
-                query_lf = query_lf.filter(pl.col.kv_to >= max_ver)
+                query_lf = query_lf.filter(~pl.col.deleted)
             query_lf = (
                 query_lf.join(comp_df, on=["type", "key"], how="left")
                 .group_by(
@@ -353,9 +355,10 @@ def query_text_keyword(
                     "letter",
                     "letter_right",
                     "v_from",
+                    "deleted",
                 )
                 .agg("key")
-                .sort("value", "type")
+                .sort("value", "type", "deleted")
                 .select(
                     "type",
                     "key",
@@ -368,16 +371,16 @@ def query_text_keyword(
                     "letter",
                     "letter_right",
                     "v_from",
+                    "deleted",
                 )
             )
     else:
         if ungrouped:
-            query_lf = query_lf.filter(pl.col.kv_from <= max_ver)
             if min_ver:
                 query_lf = query_lf.filter(min_ver <= pl.col.kv_from)
             if not include_deleted:
-                query_lf = query_lf.filter(pl.col.kv_to >= max_ver)
-            query_lf = query_lf.sort("value", "type").select(
+                query_lf = query_lf.filter(~pl.col.deleted)
+            query_lf = query_lf.sort("value", "type", "deleted").select(
                 "type",
                 "key",
                 "value",
@@ -386,13 +389,13 @@ def query_text_keyword(
                 "letter",
                 "k_from",
                 "kv_from",
+                "deleted",
             )
         else:
-            query_lf = query_lf.filter(pl.col.kv_from <= max_ver)
             if min_ver:
                 query_lf = query_lf.filter(min_ver <= pl.col.v_from)
             if not include_deleted:
-                query_lf = query_lf.filter(pl.col.kv_to >= max_ver)
+                query_lf = query_lf.filter(~pl.col.deleted)
             query_lf = (
                 query_lf.group_by(
                     "type",
@@ -401,9 +404,10 @@ def query_text_keyword(
                     "book",
                     "letter",
                     "v_from",
+                    "deleted",
                 )
                 .agg("key")
-                .sort("value", "type")
+                .sort("value", "type", "deleted")
                 .select(
                     "type",
                     "key",
@@ -412,6 +416,7 @@ def query_text_keyword(
                     "book",
                     "letter",
                     "v_from",
+                    "deleted",
                 )
             )
     try:

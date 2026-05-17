@@ -111,6 +111,15 @@ def build_result(
                     DivHStacked(
                         build_text_key(lang, ui, text["key"], i),
                         P(text["type"], cls=TextT.muted),
+                        Span(
+                            UkIcon(
+                                "trash-2",
+                                uk_tooltip=ui["RESULT_TEXT_DELETED"][lang],
+                            ),
+                            cls=TextT.error,
+                        )
+                        if text["deleted"]
+                        else None,
                         cls=[FlexT.wrap, "space-x-2"],
                     ),
                     build_text_window(
