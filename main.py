@@ -161,6 +161,7 @@ def query_dialog_keyword(
         "talkIdExpandable",
         "questIdExpandable",
     )
+    query_lf = query_lf.limit(globals["MAX_RESULTS"])
     try:
         query_df = query_lf.collect()
     except pl.exceptions.ComputeError as e:
@@ -172,26 +173,17 @@ def query_dialog_keyword(
             utils.build_alert("error", ui["ALERT_NONE"][lang]),
             globals["cache_header"],
         )
-    elif result_len < globals["MAX_RESULTS"]:
-        return (
-            utils.build_alert("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
-            query_dialog.build_keyword_result(
-                query_df.to_dicts(),
-                lang,
-                ui,
-            ),
-            globals["cache_header"],
-        )
-    return (
+    alert = (
         utils.build_alert(
             "warning",
             ui["ALERT_OVERFLOW"][lang].format(globals["MAX_RESULTS"], result_len),
-        ),
-        query_dialog.build_keyword_result(
-            query_df.limit(globals["MAX_RESULTS"]).to_dicts(),
-            lang,
-            ui,
-        ),
+        )
+        if result_len == globals["MAX_RESULTS"]
+        else utils.build_alert("success", ui["ALERT_SUCCESS"][lang].format(result_len))
+    )
+    return (
+        alert,
+        query_dialog.build_keyword_result(query_df.to_dicts(), lang, ui),
         globals["cache_header"],
     )
 
@@ -419,6 +411,7 @@ def query_text_keyword(
                     "deleted",
                 )
             )
+    query_lf = query_lf.limit(globals["MAX_RESULTS"])
     try:
         query_df = query_lf.collect()
     except pl.exceptions.ComputeError as e:
@@ -430,26 +423,19 @@ def query_text_keyword(
             utils.build_alert("error", ui["ALERT_NONE"][lang]),
             globals["cache_header"],
         )
-    elif result_len < globals["MAX_RESULTS"]:
-        return (
-            utils.build_alert("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
-            query_text.build_result(query_df.to_dicts(), lang, ui, bool(comp_lang)),
-            globals["cache_header"],
+    alert = (
+        utils.build_alert(
+            "warning",
+            ui["ALERT_OVERFLOW"][lang].format(globals["MAX_RESULTS"], result_len),
         )
-    else:
-        return (
-            utils.build_alert(
-                "warning",
-                ui["ALERT_OVERFLOW"][lang].format(globals["MAX_RESULTS"], result_len),
-            ),
-            query_text.build_result(
-                query_df.limit(globals["MAX_RESULTS"]).to_dicts(),
-                lang,
-                ui,
-                bool(comp_lang),
-            ),
-            globals["cache_header"],
-        )
+        if result_len == globals["MAX_RESULTS"]
+        else utils.build_alert("success", ui["ALERT_SUCCESS"][lang].format(result_len))
+    )
+    return (
+        alert,
+        query_text.build_result(query_df.to_dicts(), lang, ui, bool(comp_lang)),
+        globals["cache_header"],
+    )
 
 
 serve(reload=False)

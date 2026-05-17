@@ -16,8 +16,8 @@
     "EN": "No results found."
   },
   "ALERT_OVERFLOW": {
-    "CHS": "结果过多, 返回共 {1} 条中的前 {0} 条.",
-    "EN": "Too many results, returning the first {0} of {1}."
+    "CHS": "结果过多, 返回前 {} 条.",
+    "EN": "Too many results, returning the first {}."
   },
   "ALERT_SAME_LANG": {
     "CHS": "目标语言和对比语言不能相同.",
