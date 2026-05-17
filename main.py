@@ -233,8 +233,8 @@ def query_text_keyword(
     value: str,
     target_lang: str,
     comp_lang: str,
-    max_ver: str,
-    min_ver: str,
+    target_ver: str,
+    mode: str,
     no_textmap: bool = False,
     no_readable: bool = False,
     no_subtitle: bool = False,
@@ -250,18 +250,6 @@ def query_text_keyword(
     if target_lang == comp_lang:
         return (
             utils.build_alert("error", ui["ALERT_SAME_LANG"][lang]),
-            globals["cache_header"],
-        )
-    if min_ver > max_ver:
-        return (
-            utils.build_alert("error", ui["ALERT_INVALID_VER_ORDER"][lang]),
-            globals["cache_header"],
-        )
-    if min_ver and not (
-        (min_ver < "6.5" and max_ver < "6.5") or (min_ver >= "6.5" and max_ver >= "6.5")
-    ):
-        return (
-            utils.build_alert("error", ui["ALERT_INVALID_VER_INTERVAL"][lang]),
             globals["cache_header"],
         )
     globals["logger"].info(f"Text query: {key=}, {value=}")
@@ -300,16 +288,29 @@ def query_text_keyword(
         query_lf = query_lf.filter(pl.col.type != "Readable")
     if no_subtitle:
         query_lf = query_lf.filter(pl.col.type != "Subtitle")
-    query_lf = query_lf.filter(pl.col.kv_from <= max_ver).with_columns(
-        (pl.col.kv_to < max_ver).alias("deleted")
-    )
+    if mode == "new_only":
+        query_lf = query_lf.filter(pl.col.kv_from == target_ver).with_columns(
+            pl.lit(False).alias("deleted")
+        )
+        if not ungrouped:
+            query_lf = query_lf.filter(pl.col.v_from == target_ver)
+    else:
+        query_lf = query_lf.filter(pl.col.kv_from <= target_ver)
+        if mode == "include_deleted":
+            query_lf = query_lf.with_columns(
+                ~pl.col.version.list.contains(target_ver).alias("deleted")
+            )
+            if not ungrouped:
+                query_lf = query_lf.filter(
+                    (~pl.col.deleted) | (~pl.col.value.is_duplicated())
+                )
+        else:
+            query_lf = query_lf.filter(
+                pl.col.version.list.contains(target_ver)
+            ).with_columns(pl.lit(False).alias("deleted"))
     if comp_lang:
         comp_df = text_data[comp_lang]
         if ungrouped:
-            if min_ver:
-                query_lf = query_lf.filter(min_ver <= pl.col.kv_from)
-            if not include_deleted:
-                query_lf = query_lf.filter(~pl.col.deleted)
             query_lf = (
                 query_lf.join(comp_df, on=["type", "key"], how="left")
                 .sort("value", "type", "deleted")
@@ -330,10 +331,6 @@ def query_text_keyword(
                 )
             )
         else:
-            if min_ver:
-                query_lf = query_lf.filter(min_ver <= pl.col.v_from)
-            if not include_deleted:
-                query_lf = query_lf.filter(~pl.col.deleted)
             query_lf = (
                 query_lf.join(comp_df, on=["type", "key"], how="left")
                 .group_by(
@@ -368,10 +365,6 @@ def query_text_keyword(
             )
     else:
         if ungrouped:
-            if min_ver:
-                query_lf = query_lf.filter(min_ver <= pl.col.kv_from)
-            if not include_deleted:
-                query_lf = query_lf.filter(~pl.col.deleted)
             query_lf = query_lf.sort("value", "type", "deleted").select(
                 "type",
                 "key",
@@ -384,10 +377,6 @@ def query_text_keyword(
                 "deleted",
             )
         else:
-            if min_ver:
-                query_lf = query_lf.filter(min_ver <= pl.col.v_from)
-            if not include_deleted:
-                query_lf = query_lf.filter(~pl.col.deleted)
             query_lf = (
                 query_lf.group_by(
                     "type",

@@ -52,32 +52,18 @@ def build_text_versions(lang: str, ui: dict, versions: list[str]):
         LabelSelect(
             *max_version_options,
             *version_options,
-            label=ui["QUERY_TEXT_MAX_VER"][lang],
+            label=ui["QUERY_TEXT_TARGET_VER"][lang],
             searchable=True,
-            id="max_ver",
+            id="target_ver",
         ),
-        Div(
-            FormLabel(
-                Span(
-                    ui["QUERY_TEXT_MIN_VER"][lang],
-                    UkIcon(
-                        "info",
-                        uk_tooltip=ui["QUERY_TEXT_VER_TOOLTIP"][lang],
-                    ),
-                    cls=["w-full", FlexT.inline, FlexT.between],
-                ),
+        LabelSelect(
+            Option(ui["QUERY_TEXT_MODE_DEFAULT"][lang], value="", selected=True),
+            Option(ui["QUERY_TEXT_MODE_NEW_ONLY"][lang], value="new_only"),
+            Option(
+                ui["QUERY_TEXT_MODE_INCLUDE_DELETED"][lang], value="include_deleted"
             ),
-            Select(
-                Option("-", value="", selected=True),
-                *[
-                    Option(*ver_opt, value=ver_opt.value)
-                    for ver_opt in max_version_options
-                ],
-                *version_options,
-                searchable=True,
-                id="min_ver",
-            ),
-            cls="space-y-2",
+            label=ui["QUERY_TEXT_MODE"][lang],
+            id="mode",
         ),
     )
 
@@ -132,21 +118,26 @@ def build_text_query(lang: str, ui: dict, langs: list[str], versions: list[str])
     return (
         Form(
             Grid(
-                LabelInput(
-                    ui["QUERY_TEXT_KEY"][lang],
-                    placeholder=ui["QUERY_TEXT_KEY_PLACEHOLDER"][lang],
-                    id="key",
-                    type="search",
+                Grid(
+                    LabelInput(
+                        ui["QUERY_TEXT_KEY"][lang],
+                        placeholder=ui["QUERY_TEXT_KEY_PLACEHOLDER"][lang],
+                        id="key",
+                        type="search",
+                    ),
+                    LabelInput(
+                        ui["QUERY_TEXT_VALUE"][lang],
+                        id="value",
+                        placeholder=ui["QUERY_TEXT_VALUE_PLACEHOLDER"][lang],
+                        type="search",
+                    ),
                 ),
-                LabelInput(
-                    ui["QUERY_TEXT_VALUE"][lang],
-                    id="value",
-                    placeholder=ui["QUERY_TEXT_VALUE_PLACEHOLDER"][lang],
-                    type="search",
+                Grid(
+                    *build_text_langs(lang, ui, langs),
+                    *build_text_versions(lang, ui, versions),
+                    cols=2,
                 ),
-                *build_text_langs(lang, ui, langs),
-                *build_text_versions(lang, ui, versions),
-                cols_max=2,
+                cols=1,
             ),
             P(ui["QUERY_EXCLUDE"][lang], cls=TextT.bold),
             Grid(
@@ -159,9 +150,6 @@ def build_text_query(lang: str, ui: dict, langs: list[str], versions: list[str])
             Grid(
                 LabelCheckboxX(ui["QUERY_REGEX"][lang], id="regex"),
                 LabelCheckboxX(ui["QUERY_TEXT_UNGROUPED"][lang], id="ungrouped"),
-                LabelCheckboxX(
-                    ui["QUERY_TEXT_INCLUDE_DELETED"][lang], id="include_deleted"
-                ),
             ),
             DivCentered(
                 Button(
