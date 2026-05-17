@@ -56,6 +56,15 @@ async def lifespan(app):
     for lang in Langs:
         talk_data[lang] = pl.scan_parquet(data_dir / f"GI_Talk_{lang}.parquet")
         text_data[lang] = pl.scan_parquet(data_dir / f"GI_Text_{lang}.parquet")
+    globals["versions"] = (
+        list(text_data.values())[0]
+        .select("v_from")
+        .unique()
+        .collect()
+        .get_column("v_from")
+        .sort(descending=True)
+        .to_list()
+    )
     yield
 
 
@@ -88,7 +97,7 @@ def get_home(lang: str | None):
             return Redirect(f"/{lang_upper}")
         raise HTTPException(status_code=404)
     return (
-        *home.build(lang, ui, list(Langs), globals["CURR_VER"]),
+        *home.build(lang, ui, list(Langs), globals["CURR_VER"], globals["versions"]),
         globals["cache_header"],
     )
 
@@ -232,12 +241,14 @@ def query_text_keyword(
     value: str,
     target_lang: str,
     comp_lang: str,
+    max_ver: str,
+    min_ver: str,
     no_textmap: bool = False,
     no_readable: bool = False,
     no_subtitle: bool = False,
-    new: bool = False,
-    regex: bool = False,
     ungrouped: bool = False,
+    regex: bool = False,
+    include_deleted: bool = False,
 ):
     if (not key and not value) or (no_textmap and no_readable and no_subtitle):
         return (
@@ -249,13 +260,23 @@ def query_text_keyword(
             utils.build_alert("error", ui["ALERT_SAME_LANG"][lang]),
             globals["cache_header"],
         )
+    if min_ver > max_ver:
+        return (
+            utils.build_alert("error", ui["ALERT_INVALID_VER_ORDER"][lang]),
+            globals["cache_header"],
+        )
+    if min_ver and not (
+        (min_ver < "6.5" and max_ver < "6.5") or (min_ver >= "6.5" and max_ver >= "6.5")
+    ):
+        return (
+            utils.build_alert("error", ui["ALERT_INVALID_VER_INTERVAL"][lang]),
+            globals["cache_header"],
+        )
     globals["logger"].info(f"Text query: {key=}, {value=}")
     key = key.strip()
     value = value.strip()
     query_lf = text_data[target_lang]
     assert isinstance(query_lf, pl.LazyFrame)
-    if new:
-        query_lf = query_lf.filter(pl.col.v_from == pl.col.v_from.max())
     if key:
         if regex:
             query_lf = query_lf.filter(pl.col.key.str.contains(key))
@@ -287,9 +308,14 @@ def query_text_keyword(
         query_lf = query_lf.filter(pl.col.type != "Readable")
     if no_subtitle:
         query_lf = query_lf.filter(pl.col.type != "Subtitle")
-    if comp_lang != "-":
+    if comp_lang:
         comp_df = text_data[comp_lang]
         if ungrouped:
+            query_lf = query_lf.filter(pl.col.kv_from <= max_ver)
+            if min_ver:
+                query_lf = query_lf.filter(min_ver <= pl.col.kv_from)
+            if not include_deleted:
+                query_lf = query_lf.filter(pl.col.kv_to >= max_ver)
             query_lf = (
                 query_lf.join(comp_df, on=["type", "key"], how="left")
                 .sort("value", "type")
@@ -309,6 +335,11 @@ def query_text_keyword(
                 )
             )
         else:
+            query_lf = query_lf.filter(pl.col.kv_from <= max_ver)
+            if min_ver:
+                query_lf = query_lf.filter(min_ver <= pl.col.v_from)
+            if not include_deleted:
+                query_lf = query_lf.filter(pl.col.kv_to >= max_ver)
             query_lf = (
                 query_lf.join(comp_df, on=["type", "key"], how="left")
                 .group_by(
@@ -341,15 +372,47 @@ def query_text_keyword(
             )
     else:
         if ungrouped:
+            query_lf = query_lf.filter(pl.col.kv_from <= max_ver)
+            if min_ver:
+                query_lf = query_lf.filter(min_ver <= pl.col.kv_from)
+            if not include_deleted:
+                query_lf = query_lf.filter(pl.col.kv_to >= max_ver)
             query_lf = query_lf.sort("value", "type").select(
-                "type", "key", "value", "paged", "book", "letter", "k_from", "kv_from"
+                "type",
+                "key",
+                "value",
+                "paged",
+                "book",
+                "letter",
+                "k_from",
+                "kv_from",
             )
         else:
+            query_lf = query_lf.filter(pl.col.kv_from <= max_ver)
+            if min_ver:
+                query_lf = query_lf.filter(min_ver <= pl.col.v_from)
+            if not include_deleted:
+                query_lf = query_lf.filter(pl.col.kv_to >= max_ver)
             query_lf = (
-                query_lf.group_by("type", "value", "paged", "book", "letter", "v_from")
+                query_lf.group_by(
+                    "type",
+                    "value",
+                    "paged",
+                    "book",
+                    "letter",
+                    "v_from",
+                )
                 .agg("key")
                 .sort("value", "type")
-                .select("type", "key", "value", "paged", "book", "letter", "v_from")
+                .select(
+                    "type",
+                    "key",
+                    "value",
+                    "paged",
+                    "book",
+                    "letter",
+                    "v_from",
+                )
             )
     try:
         query_df = query_lf.collect()
@@ -365,7 +428,7 @@ def query_text_keyword(
     elif result_len < globals["MAX_RESULTS"]:
         return (
             utils.build_alert("success", ui["ALERT_SUCCESS"][lang].format(result_len)),
-            query_text.build_result(query_df.to_dicts(), lang, ui, comp_lang != "-"),
+            query_text.build_result(query_df.to_dicts(), lang, ui, bool(comp_lang)),
             globals["cache_header"],
         )
     else:
@@ -378,7 +441,7 @@ def query_text_keyword(
                 query_df.limit(globals["MAX_RESULTS"]).to_dicts(),
                 lang,
                 ui,
-                comp_lang != "-",
+                bool(comp_lang),
             ),
             globals["cache_header"],
         )

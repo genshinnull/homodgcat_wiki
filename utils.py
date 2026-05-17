@@ -1,6 +1,7 @@
 import re
 
 from fasthtml.common import *
+from fasthtml.components import Rp, Rt, Ruby
 from monsterui.all import *
 
 
@@ -27,26 +28,19 @@ def build_alert(
     )
 
 
+def convert_ruby(match: re.Match):
+    return to_xml(Ruby(match.group(1), Rp("["), Rt(NotStr(match.group(2))), Rp("]")))
+
+
+def convert_highlight(match: re.Match):
+    return to_xml(Mark(match.group(1)))
+
+
 def build_text(
     text: str,
 ):
-    def convert_ruby(match: re.Match):
-        return (
-            "<ruby>"
-            + match.group(1)
-            + "<rp>]</rp>"
-            + "<rt>"
-            + match.group(2)
-            + "</rt>"
-            + "<rp>]</rp>"
-            + "</ruby>"
-        )
-
-    def convert_highlight(match: re.Match):
-        return to_xml(Mark(match.group(1)))
-
     text = text.replace("\n", "<br>")
-    text = re.sub(r"<mark>(.*?)</mark>", convert_highlight, text)
     for match in re.finditer(r"(.)\{RUBY\#\[\w\](.*?)\}", text):
         text = text.replace(match.group(0), convert_ruby(match))
+    text = re.sub(r"<mark>(.*?)</mark>", convert_highlight, text)
     return P(NotStr(text), cls="text-wrap break-words")

@@ -16,13 +16,22 @@ def build_base_dialog(
     if talkRoleName:
         if talkRoleIdName:
             if talkRoleIdName != talkRoleName:
-                talkRoleIdName += " -> " + talkRoleName
+                talkRoleIdName = (
+                    to_xml(
+                        Span(
+                            talkRoleIdName,
+                            " ",
+                            cls=[TextT.muted, TextT.normal, "whitespace-pre"],
+                        )
+                    )
+                    + talkRoleName
+                )
         else:
             talkRoleIdName = talkRoleName
     talk_speaker = []
     if talkRoleIdName:
         talk_speaker.append(
-            P(talkRoleIdName, cls=[TextT.bold, "text-wrap break-words"])
+            P(NotStr(talkRoleIdName), cls=[TextT.bold, "text-wrap break-words"])
         )
     if talkTitle:
         talk_speaker.append(
@@ -84,6 +93,7 @@ def build_collection_query_trigger(
                 Loading(
                     htmx_indicator=True,
                     id="q-dialog-collection-loading",
+                    cls=[LoadingT.dots, LoadingT.lg],
                 )
             ),
             Div(id=replace),

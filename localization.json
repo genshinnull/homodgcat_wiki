@@ -3,6 +3,14 @@
     "CHS": "请求为空.",
     "EN": "Empty request."
   },
+  "ALERT_INVALID_VER_INTERVAL": {
+    "CHS": "由于 6.5 版本 TextMap 结构改变, 无法选定该区间. 请选定以下三种区间之一: 6.4 和以往版本, 6.5 和以后版本, 或不指定最低版本.",
+    "EN": "Due to the change in TextMap structure in 6.5, the interval cannot be selected. Please select one of the following three intervals: 6.4 and previous versions, 6.5 and later versions, or do not specify the min version."
+  },
+  "ALERT_INVALID_VER_ORDER": {
+    "CHS": "最高版本不能低于最低版本.",
+    "EN": "Max version cannot be lower than min version."
+  },
   "ALERT_NONE": {
     "CHS": "没有结果.",
     "EN": "No results found."
@@ -18,6 +26,10 @@
   "ALERT_SUCCESS": {
     "CHS": "找到 {} 条结果.",
     "EN": "Found {} results."
+  },
+  "LANG": {
+    "CHS": "简体中文",
+    "EN": "English"
   },
   "PAGE_CURR_VER": {
     "CHS": "当前数据版本",
@@ -49,7 +61,7 @@
   },
   "QUERY_DIALOG_SPEAKER_PLACEHOLDER": {
     "CHS": "名字或称号",
-    "EN": "Name or Title"
+    "EN": "Name or title"
   },
   "QUERY_EXCLUDE": {
     "CHS": "排除类型",
@@ -83,17 +95,33 @@
     "CHS": "排除类型",
     "EN": "Exclude Types"
   },
+  "QUERY_TEXT_INCLUDE_DELETED": {
+    "CHS": "包含已删除",
+    "EN": "Include Deleted"
+  },
   "QUERY_TEXT_KEY": {
     "CHS": "文本键",
-    "EN": "Text key"
+    "EN": "Text Key"
   },
   "QUERY_TEXT_KEY_PLACEHOLDER": {
-    "CHS": "哈希值或文件名(不含扩展名)",
-    "EN": "Hash or Filename (No Extension)"
+    "CHS": "哈希值或文件名 (不含扩展名)",
+    "EN": "Hash or filename (no extension)"
   },
-  "QUERY_TEXT_NEW": {
-    "CHS": "仅新增值",
-    "EN": "New Values Only"
+  "QUERY_TEXT_LATEST_BETA": {
+    "CHS": "最新测试服 ({})",
+    "EN": "Latest Beta ({})"
+  },
+  "QUERY_TEXT_LATEST_LIVE": {
+    "CHS": "最新正式服 ({})",
+    "EN": "Latest Live ({})"
+  },
+  "QUERY_TEXT_MAX_VER": {
+    "CHS": "最高版本 (包含)",
+    "EN": "Max Version (Inclusive)"
+  },
+  "QUERY_TEXT_MIN_VER": {
+    "CHS": "最低版本 (包含)",
+    "EN": "Min Version (Inclusive)"
   },
   "QUERY_TEXT_TARGET_LANG": {
     "CHS": "目标语言",
@@ -109,7 +137,11 @@
   },
   "QUERY_TEXT_VALUE_PLACEHOLDER": {
     "CHS": "内容或阅读物名",
-    "EN": "Content or Readable Name"
+    "EN": "Content or Readable name"
+  },
+  "QUERY_TEXT_VER_TOOLTIP": {
+    "CHS": "仅新增 - 设最低版本等于最高版本",
+    "EN": "To search new only - set min version equal to max version"
   },
   "RESULT_DIALOG_EXPAND_ID": {
     "CHS": "展开 id 范围",
@@ -127,13 +159,13 @@
     "CHS": "{} 相同文本",
     "EN": "{} Identical Entries"
   },
-  "RESULT_TEXT_K_FROM": {
-    "CHS": "键自",
-    "EN": "Key Since "
-  },
   "RESULT_TEXT_KV_FROM": {
     "CHS": "键值对自",
     "EN": "Key-Value Pair Since "
+  },
+  "RESULT_TEXT_K_FROM": {
+    "CHS": "键自",
+    "EN": "Key Since "
   },
   "RESULT_TEXT_V_FROM": {
     "CHS": "值自",
