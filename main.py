@@ -289,25 +289,23 @@ def query_text_keyword(
     if no_subtitle:
         query_lf = query_lf.filter(pl.col.type != "Subtitle")
     if mode == "new_only":
-        query_lf = query_lf.filter(pl.col.kv_from == target_ver).with_columns(
-            pl.lit(False).alias("deleted")
+        if ungrouped:
+            query_lf = query_lf.filter(pl.col.kv_from == target_ver)
+        else:
+            query_lf = query_lf.filter(pl.col.v_from == target_ver)
+        query_lf = query_lf.with_columns(pl.lit(False).alias("deleted"))
+    elif mode == "include_deleted":
+        query_lf = query_lf.filter(pl.col.kv_from <= target_ver).with_columns(
+            ~pl.col.version.list.contains(target_ver).alias("deleted")
         )
         if not ungrouped:
-            query_lf = query_lf.filter(pl.col.v_from == target_ver)
-    else:
-        query_lf = query_lf.filter(pl.col.kv_from <= target_ver)
-        if mode == "include_deleted":
-            query_lf = query_lf.with_columns(
-                ~pl.col.version.list.contains(target_ver).alias("deleted")
-            )
-            if not ungrouped:
-                query_lf = query_lf.filter(
-                    (~pl.col.deleted) | (~pl.col.value.is_duplicated())
-                )
-        else:
             query_lf = query_lf.filter(
-                pl.col.version.list.contains(target_ver)
-            ).with_columns(pl.lit(False).alias("deleted"))
+                ~((pl.col.deleted) & (pl.col.value.is_duplicated()))
+            )
+    else:
+        query_lf = query_lf.filter(
+            pl.col.version.list.contains(target_ver)
+        ).with_columns(pl.lit(False).alias("deleted"))
     if comp_lang:
         comp_df = text_data[comp_lang]
         if ungrouped:
