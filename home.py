@@ -273,6 +273,13 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str, versions: list[s
                         target="_blank",
                         cls=AT.muted,
                     ),
+                    " and ",
+                    A(
+                        "Gen",
+                        href="https://gitlab.com/R4nggaa/anime-book",
+                        target="_blank",
+                        cls=AT.muted,
+                    ),
                 ),
                 cls=["relative bottom-0", TextT.muted, TextT.xs],
             ),
