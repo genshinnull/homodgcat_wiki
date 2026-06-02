@@ -78,7 +78,7 @@ def _build_highlight(expr: pl.Expr, keyword: str, regex: bool) -> pl.Expr:
 app = FastHTML(
     default_hdrs=False,
     hdrs=[
-        Theme.blue.headers(),
+        Theme.blue.headers(daisy=False),
         fasthtml.core.htmxsrc,
         fasthtml.core.fhjsscr,
         fasthtml.charset,

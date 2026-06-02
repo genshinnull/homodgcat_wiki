@@ -90,11 +90,9 @@ def build_collection_query_trigger(
         Modal(
             ModalTitle(modal_title),
             DivCentered(
-                Loading(
-                    htmx_indicator=True,
-                    id="q-dialog-collection-loading",
-                    cls=[LoadingT.dots, LoadingT.lg],
-                )
+                data_uk_spinner="",
+                id="q-dialog-collection-loading",
+                cls=["loading", "htmx-indicator"],
             ),
             Div(id=replace),
             footer=ModalCloseButton(

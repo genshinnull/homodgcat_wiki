@@ -9,23 +9,16 @@ def build_alert(
     level: str,
     msg: str,
 ):
+    cls = ["space-x-4", FlexT.center, "uk-alert"]
     match level:
         case "error":
-            alert_cls = AlertT.error
-            alert_icon = "triangle-alert"
+            cls.append("uk-alert-destructive")
+            icon = "triangle-alert"
         case "success":
-            alert_cls = AlertT.success
-            alert_icon = "check"
+            icon = "check"
         case "warning":
-            alert_cls = AlertT.warning
-            alert_icon = "triangle-alert"
-    return Alert(
-        DivHStacked(
-            UkIcon(alert_icon),
-            P(msg),
-        ),
-        cls=alert_cls,
-    )
+            icon = "triangle-alert"
+    return DivHStacked(UkIcon(icon), P(msg), cls=cls)
 
 
 def convert_ruby(match: re.Match):

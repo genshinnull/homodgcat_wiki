@@ -101,11 +101,9 @@ def build_talk_query(lang: str, ui: dict):
                 ),
             ),
             DivCentered(
-                Loading(
-                    htmx_indicator=True,
-                    id="q-dialog-keyword-loading",
-                    cls=[LoadingT.dots, LoadingT.lg],
-                )
+                data_uk_spinner="",
+                id="q-dialog-keyword-loading",
+                cls=["loading", "htmx-indicator"],
             ),
             cls="space-y-5",
             hx_get=f"/{lang}/q/dialog_keyword",
@@ -160,11 +158,9 @@ def build_text_query(lang: str, ui: dict, langs: list[str], versions: list[str])
                 ),
             ),
             DivCentered(
-                Loading(
-                    htmx_indicator=True,
-                    id="q-text-loading",
-                    cls=[LoadingT.dots, LoadingT.lg],
-                )
+                data_uk_spinner="",
+                id="q-text-loading",
+                cls=["loading", "htmx-indicator"],
             ),
             cls="space-y-5",
             hx_get=f"/{lang}/q/text",
