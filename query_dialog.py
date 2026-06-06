@@ -3,6 +3,9 @@ from monsterui.all import *
 
 import utils
 
+HONEY_BASE_URL = "https://gensh.honeyhunterworld.com/{}_{}/?lang={}"
+AMBER_BASE_URL = "https://gi.yatta.moe/{}/archive/quest/{}"
+
 
 def build_base_dialog(
     id: int,
@@ -50,7 +53,7 @@ def build_base_dialog(
     )
 
 
-def build_collection_query_trigger(
+def build_collection_query_modal(
     lang: str,
     ui: dict,
     i: int,
@@ -106,6 +109,35 @@ def build_collection_query_trigger(
     )
 
 
+def build_collection_query_external(
+    lang: str,
+    ui: dict,
+    source: str,
+    questId: int | None = None,
+    chapterId: int | None = None,
+):
+    if questId:
+        if source == "Project Amber":
+            url = AMBER_BASE_URL.format(lang.lower(), questId)
+        elif source == "Honey Impact":
+            url = HONEY_BASE_URL.format("q", questId, lang)
+        link_title = ui["RESULT_DIALOG_EXTERNAL_QUEST"][lang].format(source)
+    elif chapterId:
+        if source == "Project Amber":
+            url = AMBER_BASE_URL.format(lang.lower(), chapterId)
+        elif source == "Honey Impact":
+            url = HONEY_BASE_URL.format("ch", chapterId, lang)
+        link_title = ui["RESULT_DIALOG_EXTERNAL_CHAPTER"][lang].format(source)
+    return Li(
+        A(
+            Span(UkIcon("external-link"), cls=AT.primary),
+            link_title,
+            href=url,
+            target="_blank",
+        )
+    )
+
+
 def build_keyword_result(dialogs: list[dict], lang: str, ui: dict):
     results = []
     for i, dialog in enumerate(dialogs):
@@ -126,15 +158,38 @@ def build_keyword_result(dialogs: list[dict], lang: str, ui: dict):
         if talk_collection_names:
             talk_collection_names = " - ".join(talk_collection_names)
         talk_collection_triggers = [
-            build_collection_query_trigger(lang, ui, i, id=dialog["id"])
+            build_collection_query_modal(lang, ui, i, id=dialog["id"])
         ]
         if dialog["talkIdExpandable"]:
             talk_collection_triggers.append(
-                build_collection_query_trigger(lang, ui, i, talkId=dialog["talkId"])
+                build_collection_query_modal(lang, ui, i, talkId=dialog["talkId"])
             )
-        if dialog["questIdExpandable"]:
+        if dialog["questId"]:
+            if dialog["questIdExpandable"]:
+                talk_collection_triggers.append(
+                    build_collection_query_modal(lang, ui, i, questId=dialog["questId"])
+                )
             talk_collection_triggers.append(
-                build_collection_query_trigger(lang, ui, i, questId=dialog["questId"])
+                build_collection_query_external(
+                    lang, ui, source="Honey Impact", questId=dialog["questId"]
+                )
+            )
+            if not dialog["chapterId"]:
+                talk_collection_triggers.append(
+                    build_collection_query_external(
+                        lang, ui, source="Project Amber", questId=dialog["questId"]
+                    )
+                )
+        if dialog["chapterId"]:
+            talk_collection_triggers.append(
+                build_collection_query_external(
+                    lang, ui, source="Honey Impact", chapterId=dialog["chapterId"]
+                )
+            )
+            talk_collection_triggers.append(
+                build_collection_query_external(
+                    lang, ui, source="Project Amber", chapterId=dialog["chapterId"]
+                )
             )
         results.append(
             Li(

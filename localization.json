@@ -155,6 +155,14 @@
     "CHS": "展开完整对话",
     "EN": "Expand full talk"
   },
+  "RESULT_DIALOG_EXTERNAL_CHAPTER": {
+    "CHS": "前往 {} 查看章节",
+    "EN": "View chapter on {}"
+  },
+  "RESULT_DIALOG_EXTERNAL_QUEST": {
+    "CHS": "前往 {} 查看任务",
+    "EN": "View quest on {}"
+  },
   "RESULT_TEXT_DELETED": {
     "CHS": "已删除的文本",
     "EN": "Deleted text"

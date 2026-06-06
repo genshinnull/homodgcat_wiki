@@ -207,6 +207,7 @@ def query_dialog_keyword(
         "questId",
         "questIdName",
         "activityIdName",
+        "chapterId",
         "chapterTitle",
         "chapterNum",
         "type",
