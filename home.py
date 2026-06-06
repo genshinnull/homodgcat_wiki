@@ -91,6 +91,7 @@ def build_talk_query(lang: str, ui: dict):
                         hx_target="#q-dialog-speaker",
                         _=(
                             "on input empty #q-dialog-speaker "
+                            "when #regex.checked changes empty #q-dialog-speaker "
                             "on compositionstart set :composing to true "
                             "on compositionend set :composing to false "
                             "on input debounced at 500ms"
@@ -99,6 +100,7 @@ def build_talk_query(lang: str, ui: dict):
                             "  and my value does not start with '<'"
                             "  and my value does not end with '>'"
                             "  and (:composing does not exist or :composing is false)"
+                            "  and #regex.checked is false"
                             " then send getSpeakers"
                         ),
                     ),

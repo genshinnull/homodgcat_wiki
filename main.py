@@ -137,7 +137,9 @@ def query_dialog_speaker(lang: Langs, speaker: str):
             .get_column("speaker")
             .to_list()
         )
-        if len(speaker_list) > 1:
+        if (len(speaker_list) == 1 and speaker_list[0][1:-1].lower() != speaker) or len(
+            speaker_list
+        ) > 1:
             return (
                 *[Option(value=speaker) for speaker in speaker_list],
                 globals["cache_header"],
