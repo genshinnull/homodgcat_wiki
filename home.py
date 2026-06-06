@@ -70,13 +70,39 @@ def build_text_versions(lang: str, ui: dict, versions: list[str]):
 
 def build_talk_query(lang: str, ui: dict):
     return (
+        Datalist(id="q-dialog-speaker"),
         Form(
             Grid(
-                LabelInput(
-                    ui["QUERY_DIALOG_SPEAKER"][lang],
-                    placeholder=ui["QUERY_DIALOG_SPEAKER_PLACEHOLDER"][lang],
-                    id="speaker",
-                    type="search",
+                Div(
+                    FormLabel(
+                        Span(ui["QUERY_DIALOG_SPEAKER"][lang]),
+                        UkIcon(
+                            "info", uk_tooltip=ui["QUERY_DIALOG_SPEAKER_TOOLTIP"][lang]
+                        ),
+                        cls=[FlexT.inline, "space-x-2"],
+                    ),
+                    Input(
+                        placeholder=ui["QUERY_DIALOG_SPEAKER_PLACEHOLDER"][lang],
+                        id="speaker",
+                        type="search",
+                        list="q-dialog-speaker",
+                        hx_get=f"/{lang}/q/dialog_speaker",
+                        hx_trigger="getSpeakers",
+                        hx_target="#q-dialog-speaker",
+                        _=(
+                            "on input empty #q-dialog-speaker "
+                            "on compositionstart set :composing to true "
+                            "on compositionend set :composing to false "
+                            "on input debounced at 500ms"
+                            " if"
+                            "  my value is not empty"
+                            "  and my value does not start with '<'"
+                            "  and my value does not end with '>'"
+                            "  and (:composing does not exist or :composing is false)"
+                            " then send getSpeakers"
+                        ),
+                    ),
+                    cls="space-y-2",
                 ),
                 LabelInput(
                     ui["QUERY_DIALOG_CONTENT"][lang],

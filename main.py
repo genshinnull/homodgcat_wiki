@@ -23,6 +23,8 @@ globals = {}
 ui = {}
 talk_data = {}
 text_data = {}
+speakers = {}
+versions = []
 
 
 async def lifespan(app):
@@ -56,7 +58,19 @@ async def lifespan(app):
     for lang in Langs:
         talk_data[lang] = pl.scan_parquet(data_dir / f"GI_Talk_{lang}.parquet")
         text_data[lang] = pl.scan_parquet(data_dir / f"GI_Text_{lang}.parquet")
-    globals["versions"] = (
+        speakers[lang] = (
+            pl.concat(
+                talk_data[lang]
+                .select(category, f"{category}Lower")
+                .rename({category: "speaker", f"{category}Lower": "speakerLower"})
+                for category in ["talkRoleIdName", "talkRoleName", "talkTitle"]
+            )
+            .unique()
+            .sort("speaker")
+            .collect()
+            .lazy()
+        )
+    versions.extend(
         list(text_data.values())[0]
         .select("v_from")
         .unique()
@@ -82,6 +96,9 @@ app = FastHTML(
         fasthtml.core.htmxsrc,
         fasthtml.core.fhjsscr,
         fasthtml.charset,
+        Script(
+            src="https://cdn.jsdelivr.net/npm/hyperscript.org@0.9.91/dist/_hyperscript.min.js"
+        ),
     ],
     lifespan=lifespan,
 )
@@ -97,9 +114,35 @@ def get_home(lang: str | None):
             return Redirect(f"/{lang_upper}")
         raise HTTPException(status_code=404)
     return (
-        *home.build(lang, ui, list(Langs), globals["CURR_VER"], globals["versions"]),
+        *home.build(lang, ui, list(Langs), globals["CURR_VER"], versions),
         globals["cache_header"],
     )
+
+
+@app.route("/{lang}/q/dialog_speaker", methods="GET")
+@functools.lru_cache
+def query_dialog_speaker(lang: Langs, speaker: str):
+    if speaker:
+        speaker = speaker.lower()
+        speaker_list = (
+            speakers[lang]
+            .filter(pl.col.speakerLower.str.contains(speaker, literal=True))
+            .sort(
+                pl.col.speakerLower.str.starts_with(speaker),
+                pl.col.speaker.str.len_chars(),
+                descending=[True, False],
+            )
+            .select(pl.format("<{}>", pl.col("speaker")))
+            .collect()
+            .get_column("speaker")
+            .to_list()
+        )
+        if len(speaker_list) > 1:
+            return (
+                *[Option(value=speaker) for speaker in speaker_list],
+                globals["cache_header"],
+            )
+    return globals["cache_header"]
 
 
 @app.route("/{lang}/q/dialog_keyword", methods="GET")
@@ -120,9 +163,16 @@ def query_dialog_keyword(
     if new:
         query_lf = query_lf.filter(pl.col.new)
     if speaker:
-        if regex:
+        if speaker.startswith("<") and speaker.endswith(">"):
+            speaker = speaker[1:-1]
             query_lf = query_lf.filter(
-                pl.col.talkRoleIdName.str.contains(speaker)
+                (pl.col.talkRoleIdName == speaker)
+                | (pl.col.talkRoleName == speaker)
+                | (pl.col.talkTitle == speaker)
+            )
+        elif regex:
+            query_lf = query_lf.filter(
+                (pl.col.talkRoleIdName.str.contains(speaker))
                 | (pl.col.talkRoleName.str.contains(speaker))
                 | (pl.col.talkTitle.str.contains(speaker))
             )

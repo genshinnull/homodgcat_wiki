@@ -55,6 +55,10 @@
     "CHS": "名字或称号",
     "EN": "Name or title"
   },
+  "QUERY_DIALOG_SPEAKER_TOOLTIP": {
+    "CHS": "精确匹配 - 用 <> 括住搜索词",
+    "EN": "Exact match - surround search term with <>"
+  },
   "QUERY_EXCLUDE": {
     "CHS": "排除类型",
     "EN": "Exclude Types"
