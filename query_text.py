@@ -116,7 +116,7 @@ def build_result(
                                 "trash-2",
                                 uk_tooltip=ui["RESULT_TEXT_DELETED"][lang],
                             ),
-                            cls=TextT.error,
+                            cls="text-red-600",
                         )
                         if text["deleted"]
                         else None,

@@ -293,9 +293,10 @@ def query_text_keyword(
     no_subtitle: bool = False,
     ungrouped: bool = False,
     regex: bool = False,
-    include_deleted: bool = False,
 ):
-    if (not key and not value) or (no_textmap and no_readable and no_subtitle):
+    if (mode != "new_only" and not key and not value) or (
+        no_textmap and no_readable and no_subtitle
+    ):
         return (
             utils.build_alert("error", ui["ALERT_EMPTY"][lang]),
             globals["cache_header"],
