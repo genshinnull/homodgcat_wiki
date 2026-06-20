@@ -115,6 +115,7 @@ def build_collection_query_external(
     source: str,
     questId: int | None = None,
     chapterId: int | None = None,
+    activityId: int | None = None,
 ):
     if questId:
         if source == "Project Amber":
@@ -128,6 +129,10 @@ def build_collection_query_external(
         elif source == "Honey Impact":
             url = HONEY_BASE_URL.format("ch", chapterId, lang)
         link_title = ui["RESULT_DIALOG_EXTERNAL_CHAPTER"][lang].format(source)
+    elif activityId:
+        if source == "Honey Impact":
+            url = HONEY_BASE_URL.format("e", activityId, lang)
+        link_title = ui["RESULT_DIALOG_EXTERNAL_ACTIVITY"][lang].format(source)
     return Li(
         A(
             Span(UkIcon("external-link"), cls=AT.primary),
@@ -189,6 +194,12 @@ def build_keyword_result(dialogs: list[dict], lang: str, ui: dict):
             talk_collection_triggers.append(
                 build_collection_query_external(
                     lang, ui, source="Project Amber", chapterId=dialog["chapterId"]
+                )
+            )
+        if dialog["activityId"]:
+            talk_collection_triggers.append(
+                build_collection_query_external(
+                    lang, ui, source="Honey Impact", activityId=dialog["activityId"]
                 )
             )
         results.append(
