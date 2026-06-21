@@ -94,7 +94,7 @@ def build_talk_query(lang: str, ui: dict):
                             "when #regex.checked changes empty #q-dialog-speaker "
                             "on compositionstart set :composing to true "
                             "on compositionend set :composing to false "
-                            "on input debounced at 500ms"
+                            "on input debounced at 250ms"
                             " if"
                             "  my value is not empty"
                             "  and my value does not start with '<'"
