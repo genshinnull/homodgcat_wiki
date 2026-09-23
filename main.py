@@ -60,9 +60,7 @@ async def lifespan(app):
         text_data[lang] = pl.scan_parquet(data_dir / f"GI_Text_{lang}.parquet")
         speakers[lang] = (
             pl.concat(
-                talk_data[lang]
-                .select(category, f"{category}Lower")
-                .rename({category: "speaker", f"{category}Lower": "speakerLower"})
+                talk_data[lang].select(category).rename({category: "speaker"})
                 for category in ["talkRoleIdName", "talkRoleName", "talkTitle"]
             )
             .unique()
@@ -82,11 +80,8 @@ async def lifespan(app):
     yield
 
 
-def _build_highlight(expr: pl.Expr, keyword: str, regex: bool) -> pl.Expr:
-    return expr.str.replace_all(
-        rf"({keyword})" if regex else rf"(?i)({pl.escape_regex(keyword)})",
-        r"<mark>$0</mark>",
-    )
+def _build_highlight(expr: pl.Expr, keyword: str) -> pl.Expr:
+    return expr.str.replace_all(rf"({keyword})", r"<mark>$0</mark>")
 
 
 app = FastHTML(
@@ -123,12 +118,11 @@ def get_home(lang: str | None):
 @functools.lru_cache
 def query_dialog_speaker(lang: Langs, speaker: str):
     if speaker:
-        speaker = speaker.lower()
         speaker_list = (
             speakers[lang]
-            .filter(pl.col.speakerLower.str.contains(speaker, literal=True))
+            .filter(pl.col.speaker.str.contains(f"(?i){pl.escape_regex(speaker)}"))
             .sort(
-                pl.col.speakerLower.str.starts_with(speaker),
+                pl.col.speaker.str.starts_with(speaker),
                 pl.col.speaker.str.len_chars(),
                 descending=[True, False],
             )
@@ -137,9 +131,9 @@ def query_dialog_speaker(lang: Langs, speaker: str):
             .get_column("speaker")
             .to_list()
         )
-        if (len(speaker_list) == 1 and speaker_list[0][1:-1].lower() != speaker) or len(
-            speaker_list
-        ) > 1:
+        if (
+            len(speaker_list) == 1 and speaker_list[0][1:-1].lower() != speaker.lower()
+        ) or len(speaker_list) > 1:
             return (
                 *[Option(value=speaker) for speaker in speaker_list],
                 globals["cache_header"],
@@ -172,29 +166,20 @@ def query_dialog_keyword(
                 | (pl.col.talkRoleName == speaker)
                 | (pl.col.talkTitle == speaker)
             )
-        elif regex:
+        else:
+            if not regex:
+                speaker = f"(?i){pl.escape_regex(speaker)}"
             query_lf = query_lf.filter(
                 (pl.col.talkRoleIdName.str.contains(speaker))
                 | (pl.col.talkRoleName.str.contains(speaker))
                 | (pl.col.talkTitle.str.contains(speaker))
             )
-        else:
-            speaker = speaker.lower()
-            query_lf = query_lf.filter(
-                (pl.col.talkRoleIdNameLower.str.contains(speaker, literal=True))
-                | (pl.col.talkRoleNameLower.str.contains(speaker, literal=True))
-                | (pl.col.talkTitleLower.str.contains(speaker, literal=True))
-            )
     if content:
-        if regex:
-            query_lf = query_lf.filter(pl.col.talkContent.str.contains(content))
-        else:
-            content_lower = content.lower()
-            query_lf = query_lf.filter(
-                pl.col.talkContentLower.str.contains(content_lower, literal=True)
-            )
+        if not regex:
+            content = f"(?i){pl.escape_regex(content)}"
+        query_lf = query_lf.filter(pl.col.talkContent.str.contains(content))
         query_lf = query_lf.with_columns(
-            pl.col.talkContent.pipe(_build_highlight, content, regex)
+            pl.col.talkContent.pipe(_build_highlight, content)
         )
     query_lf = query_lf.select(
         "id",
@@ -313,29 +298,20 @@ def query_text_keyword(
     query_lf = text_data[target_lang]
     assert isinstance(query_lf, pl.LazyFrame)
     if key:
-        if regex:
-            query_lf = query_lf.filter(pl.col.key.str.contains(key))
-        else:
-            key = key.lower()
-            query_lf = query_lf.filter(pl.col.keyLower.str.contains(key, literal=True))
+        if not regex:
+            key = f"(?i){pl.escape_regex(key)}"
+        query_lf = query_lf.filter(pl.col.key.str.contains(key))
     if value:
-        if regex:
-            query_lf = query_lf.filter(
-                (pl.col.value.str.contains(value))
-                | (pl.col.paged.str.contains(value))
-                | (pl.col.book.str.contains(value))
-                | (pl.col.letter.str.contains(value))
-            )
-        else:
-            value_lower = value.lower()
-            query_lf = query_lf.filter(
-                (pl.col.valueLower.str.contains(value_lower, literal=True))
-                | (pl.col.pagedLower.str.contains(value_lower, literal=True))
-                | (pl.col.bookLower.str.contains(value_lower, literal=True))
-                | (pl.col.letterLower.str.contains(value_lower, literal=True))
-            )
+        if not regex:
+            value = f"(?i){pl.escape_regex(value)}"
+        query_lf = query_lf.filter(
+            (pl.col.value.str.contains(value))
+            | (pl.col.paged.str.contains(value))
+            | (pl.col.book.str.contains(value))
+            | (pl.col.letter.str.contains(value))
+        )
         query_lf = query_lf.with_columns(
-            pl.col.value.pipe(_build_highlight, value, regex),
+            pl.col.value.pipe(_build_highlight, value),
         )
     if no_textmap:
         query_lf = query_lf.filter(pl.col.type != "TextMap")
