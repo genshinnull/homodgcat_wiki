@@ -28,8 +28,8 @@
     "EN": "Current data version"
   },
   "PAGE_FOOTER": {
-    "CHS": "HomoDGCat 网站与妮可少女无关且独立于 homdgcat.wiki.",
-    "EN": "The HomoDGCat website is not affiliated with HomDGCat and is independent from homdgcat.wiki."
+    "CHS": "HomoDGCat 网站与妮可少女无关且独立于 homdgcat.wiki",
+    "EN": "The HomoDGCat website is not affiliated with HomDGCat and is independent from homdgcat.wiki"
   },
   "PAGE_TITLE": {
     "CHS": "原神文本搜索",
@@ -38,26 +38,6 @@
   "PAGE_USE_LANG": {
     "CHS": "简体中文",
     "EN": "English"
-  },
-  "QUERY_DIALOG_CONTENT": {
-    "CHS": "内容",
-    "EN": "Content"
-  },
-  "QUERY_DIALOG_NEW": {
-    "CHS": "仅新增",
-    "EN": "New Only"
-  },
-  "QUERY_DIALOG_SPEAKER": {
-    "CHS": "人物",
-    "EN": "Speaker"
-  },
-  "QUERY_DIALOG_SPEAKER_PLACEHOLDER": {
-    "CHS": "名字或称号",
-    "EN": "Name or title"
-  },
-  "QUERY_DIALOG_SPEAKER_TOOLTIP": {
-    "CHS": "精确匹配 - 用 <> 括住搜索词",
-    "EN": "Exact match - surround search term with <>"
   },
   "QUERY_EXCLUDE": {
     "CHS": "排除类型",
@@ -75,13 +55,49 @@
     "CHS": "搜索",
     "EN": "Search"
   },
-  "QUERY_TAB_DIALOG": {
+  "QUERY_TAB_TALK": {
     "CHS": "对话",
-    "EN": "Dialogues"
+    "EN": "Talk"
+  },
+  "QUERY_TAB_TERM": {
+    "CHS": "术语",
+    "EN": "Term"
   },
   "QUERY_TAB_TEXT": {
-    "CHS": "全文本",
-    "EN": "All Text"
+    "CHS": "文本",
+    "EN": "Text"
+  },
+  "QUERY_TALK_CONTENT": {
+    "CHS": "内容",
+    "EN": "Content"
+  },
+  "QUERY_TALK_NEW": {
+    "CHS": "仅新增",
+    "EN": "New Only"
+  },
+  "QUERY_TALK_SPEAKER": {
+    "CHS": "人物",
+    "EN": "Speaker"
+  },
+  "QUERY_TALK_SPEAKER_PLACEHOLDER": {
+    "CHS": "名字或称号",
+    "EN": "Name or title"
+  },
+  "QUERY_TALK_SPEAKER_TOOLTIP": {
+    "CHS": "精确匹配 - 用 <> 括住搜索词",
+    "EN": "Exact match - surround search term with <>"
+  },
+  "QUERY_TERM_PLACEHOLDER": {
+    "CHS": "翻译游戏术语",
+    "EN": "Translate in-game terminology"
+  },
+  "QUERY_TERM_QUERY": {
+    "CHS": "查询",
+    "EN": "Query"
+  },
+  "QUERY_TERM_TARGET_LANG": {
+    "CHS": "目标语言",
+    "EN": "Target Language"
   },
   "QUERY_TEXT_COMP_LANG": {
     "CHS": "对比语言",

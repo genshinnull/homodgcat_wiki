@@ -12,6 +12,7 @@ from monsterui.all import *
 
 import home
 import query_dialog
+import query_term
 import query_text
 import utils
 
@@ -21,6 +22,7 @@ Langs = str_enum("Langs", *os.environ["LANGS"].split(","))
 
 globals = {}
 ui = {}
+term_data = {}
 talk_data = {}
 text_data = {}
 speakers = {}
@@ -43,19 +45,20 @@ async def lifespan(app):
     data_dir.mkdir()
     if (data_src_dir := Path(DATA_SRC)).is_dir():
         for lang in Langs:
-            for data_type in ["Talk", "Text"]:
+            for data_type in ["Talk", "Text", "Term"]:
                 shutil.copyfile(
                     data_src_dir / f"GI_{data_type}_{lang}.parquet",
                     data_dir / f"GI_{data_type}_{lang}.parquet",
                 )
     else:
         for lang in Langs:
-            for data_type in ["Talk", "Text"]:
+            for data_type in ["Talk", "Text", "Term"]:
                 with open(data_dir / f"GI_{data_type}_{lang}.parquet", "wb") as f:
                     f.write(
                         httpx.get(f"{DATA_SRC}/GI_{data_type}_{lang}.parquet").content
                     )
     for lang in Langs:
+        term_data[lang] = pl.scan_parquet(data_dir / f"GI_Term_{lang}.parquet")
         talk_data[lang] = pl.scan_parquet(data_dir / f"GI_Talk_{lang}.parquet")
         text_data[lang] = pl.scan_parquet(data_dir / f"GI_Text_{lang}.parquet")
         speakers[lang] = (
@@ -112,6 +115,34 @@ def get_home(lang: str | None):
         *home.build(lang, ui, list(Langs), globals["CURR_VER"], versions),
         globals["cache_header"],
     )
+
+
+@app.route("/{lang}/q/term", methods="GET")
+@functools.lru_cache
+def query_term_lookup(lang: Langs, term: str, target_lang: Langs):
+    term = term.strip()
+    if term:
+        globals["logger"].info(f"Query term: {term}")
+        term = f"(?i){pl.escape_regex(term)}"
+        query_lf = (
+            term_data[lang]
+            .filter(pl.col(lang).str.contains(term))
+            .sort(
+                pl.col(lang).str.to_lowercase().str.starts_with(term[4:].lower()),
+                pl.col(lang).str.len_chars(),
+                descending=[True, False],
+            )
+        )
+        query_lf = query_lf.with_columns(
+            pl.col(lang).pipe(_build_highlight, term)
+        ).limit(globals["MAX_RESULTS"])
+        query_df = query_lf.collect()
+        if not query_df.is_empty():
+            return (
+                query_term.build_results(query_df.to_dicts(), term, lang, target_lang),
+                globals["cache_header"],
+            )
+    return globals["cache_header"]
 
 
 @app.route("/{lang}/q/dialog_speaker", methods="GET")

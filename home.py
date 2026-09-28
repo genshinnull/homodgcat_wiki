@@ -68,6 +68,50 @@ def build_text_versions(lang: str, ui: dict, versions: list[str]):
     )
 
 
+def build_term_query(lang: str, ui: dict, langs: list[str]):
+    target_langs = langs.copy()
+    target_langs.remove(lang)
+    return (
+        Form(
+            Grid(
+                LabelInput(
+                    ui["QUERY_TERM_QUERY"][lang],
+                    placeholder=ui["QUERY_TERM_PLACEHOLDER"][lang],
+                    id="term",
+                    type="search",
+                    _=(
+                        "on compositionstart set :composing to true "
+                        "on compositionend set :composing to false "
+                        "on input debounced at 250ms"
+                        " if"
+                        "  my value is not empty"
+                        "  and (:composing does not exist or :composing is false)"
+                        " then send getTerms"
+                    ),
+                ),
+                LabelSelect(
+                    Option(
+                        ui["LANG"][target_langs[0]],
+                        value=target_langs[0],
+                        selected=True,
+                    ),
+                    *[
+                        Option(ui["LANG"][_lang], value=_lang)
+                        for _lang in target_langs[1:]
+                    ],
+                    label=ui["QUERY_TERM_TARGET_LANG"][lang],
+                    id="target_lang",
+                ),
+            ),
+            onsubmit="return false",
+            cls="space-y-5",
+            hx_get=f"/{lang}/q/term",
+            hx_trigger="getTerms",
+            hx_target="#q-main-result",
+        ),
+    )
+
+
 def build_talk_query(lang: str, ui: dict):
     return (
         Datalist(id="q-dialog-speaker"),
@@ -75,14 +119,14 @@ def build_talk_query(lang: str, ui: dict):
             Grid(
                 Div(
                     FormLabel(
-                        Span(ui["QUERY_DIALOG_SPEAKER"][lang]),
+                        Span(ui["QUERY_TALK_SPEAKER"][lang]),
                         UkIcon(
-                            "info", uk_tooltip=ui["QUERY_DIALOG_SPEAKER_TOOLTIP"][lang]
+                            "info", uk_tooltip=ui["QUERY_TALK_SPEAKER_TOOLTIP"][lang]
                         ),
                         cls=[FlexT.inline, "space-x-2"],
                     ),
                     Input(
-                        placeholder=ui["QUERY_DIALOG_SPEAKER_PLACEHOLDER"][lang],
+                        placeholder=ui["QUERY_TALK_SPEAKER_PLACEHOLDER"][lang],
                         id="speaker",
                         type="search",
                         list="q-dialog-speaker",
@@ -107,7 +151,7 @@ def build_talk_query(lang: str, ui: dict):
                     cls="space-y-2",
                 ),
                 LabelInput(
-                    ui["QUERY_DIALOG_CONTENT"][lang],
+                    ui["QUERY_TALK_CONTENT"][lang],
                     id="content",
                     type="search",
                 ),
@@ -115,7 +159,7 @@ def build_talk_query(lang: str, ui: dict):
             P(ui["QUERY_OPTIONS"][lang], cls=TextT.bold),
             Grid(
                 LabelCheckboxX(ui["QUERY_REGEX"][lang], id="regex"),
-                LabelCheckboxX(ui["QUERY_DIALOG_NEW"][lang], id="new"),
+                LabelCheckboxX(ui["QUERY_TALK_NEW"][lang], id="new"),
             ),
             DivCentered(
                 Button(
@@ -221,12 +265,14 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str, versions: list[s
             P(f"{ui['PAGE_CURR_VER'][lang]}: {curr_ver}", cls=TextT.muted),
             Container(
                 TabContainer(
-                    Li(A(ui["QUERY_TAB_DIALOG"][lang], href="#")),
+                    Li(A(ui["QUERY_TAB_TERM"][lang], href="#")),
+                    Li(A(ui["QUERY_TAB_TALK"][lang], href="#")),
                     Li(A(ui["QUERY_TAB_TEXT"][lang], href="#")),
-                    uk_switcher="connect: #q-tabs",
+                    uk_switcher="connect: #q-tabs; active: 1",
                     alt=True,
                 ),
                 Ul(
+                    Li(*build_term_query(lang, ui, langs)),
                     Li(*build_talk_query(lang, ui)),
                     Li(*build_text_query(lang, ui, langs, versions)),
                     id="q-tabs",
@@ -289,7 +335,8 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str, versions: list[s
                         target="_blank",
                         cls=AT.muted,
                     ),
-                    " · ",
+                ),
+                P(
                     "Beta data from ",
                     A(
                         "Kuroo",
@@ -301,6 +348,15 @@ def build(lang: str, ui: dict, langs: list[str], curr_ver: str, versions: list[s
                     A(
                         "Gen",
                         href="https://gitlab.com/R4nggaa/anime-book",
+                        target="_blank",
+                        cls=AT.muted,
+                    ),
+                ),
+                P(
+                    "Terminology data from ",
+                    A(
+                        "Genshin Fandom Wiki",
+                        href="https://genshin-impact.fandom.com/wiki/Special:Statistics",
                         target="_blank",
                         cls=AT.muted,
                     ),
