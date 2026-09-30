@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import shutil
+from urllib.parse import unquote_plus
 
 import fasthtml.core
 import httpx
@@ -17,6 +18,21 @@ import query_text
 import utils
 
 pl.Config.set_engine_affinity("streaming")
+
+
+class DecodeAccessPath(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        args = record.args
+        if not (isinstance(args, tuple) and len(args) == 5):
+            return True
+        client, method, target, version, status = args
+        if isinstance(target, str) and not getattr(record, "_path_decoded", False):
+            record._path_decoded = True
+            record.args = (client, method, unquote_plus(target), version, status)
+        return True
+
+
+logging.getLogger("uvicorn.access").addFilter(DecodeAccessPath())
 
 Langs = str_enum("Langs", *os.environ["LANGS"].split(","))
 
@@ -37,7 +53,6 @@ async def lifespan(app):
         "Cache-Control", f"max-age={CACHE_MAX_AGE}" if CACHE_MAX_AGE else "no-store"
     )
     globals["MAX_RESULTS"] = 1000
-    globals["logger"] = logging.getLogger("uvicorn.info")
     with open("localization.json") as f:
         ui.update(json.loads(f.read()))
     data_dir = Path("data")
@@ -127,7 +142,6 @@ def query_term_lookup(lang: Langs, term: str, target_lang: Langs, comp_lang: str
                 utils.build_alert("error", ui["ALERT_SAME_LANG"][lang]),
                 globals["cache_header"],
             )
-        globals["logger"].info(f"Term: {term}")
         term = f"(?i){pl.escape_regex(term)}"
         query_lf = (
             term_data[lang]
@@ -189,7 +203,6 @@ def query_dialog_keyword(
             utils.build_alert("error", ui["ALERT_EMPTY"][lang]),
             globals["cache_header"],
         )
-    globals["logger"].info(f"Talk: {speaker=}, {content=}")
     speaker = speaker.strip()
     content = content.strip()
     query_lf = talk_data[lang]
@@ -330,7 +343,6 @@ def query_text_keyword(
             utils.build_alert("error", ui["ALERT_SAME_LANG"][lang]),
             globals["cache_header"],
         )
-    globals["logger"].info(f"Text: {key=}, {value=}")
     key = key.strip()
     value = value.strip()
     query_lf = text_data[target_lang]
