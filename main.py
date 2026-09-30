@@ -119,27 +119,34 @@ def get_home(lang: str | None):
 
 @app.route("/{lang}/q/term", methods="GET")
 @functools.lru_cache
-def query_term_lookup(lang: Langs, term: str, target_lang: Langs):
+def query_term_lookup(lang: Langs, term: str, target_lang: Langs, comp_lang: str):
     term = term.strip()
     if term:
-        globals["logger"].info(f"Query term: {term}")
+        if comp_lang == target_lang:
+            return (
+                utils.build_alert("error", ui["ALERT_SAME_LANG"][lang]),
+                globals["cache_header"],
+            )
+        globals["logger"].info(f"Term: {term}")
         term = f"(?i){pl.escape_regex(term)}"
         query_lf = (
             term_data[lang]
-            .filter(pl.col(lang).str.contains(term))
+            .filter(pl.col(target_lang).str.contains(term))
             .sort(
-                pl.col(lang).str.to_lowercase().str.starts_with(term[4:].lower()),
-                pl.col(lang).str.len_chars(),
+                pl.col(target_lang)
+                .str.to_lowercase()
+                .str.starts_with(term[4:].lower()),
+                pl.col(target_lang).str.len_chars(),
                 descending=[True, False],
             )
         )
         query_lf = query_lf.with_columns(
-            pl.col(lang).pipe(_build_highlight, term)
+            pl.col(target_lang).pipe(_build_highlight, term)
         ).limit(globals["MAX_RESULTS"])
         query_df = query_lf.collect()
         if not query_df.is_empty():
             return (
-                query_term.build_results(query_df.to_dicts(), term, lang, target_lang),
+                query_term.build_results(query_df.to_dicts(), target_lang, comp_lang),
                 globals["cache_header"],
             )
     return globals["cache_header"]
@@ -182,7 +189,7 @@ def query_dialog_keyword(
             utils.build_alert("error", ui["ALERT_EMPTY"][lang]),
             globals["cache_header"],
         )
-    globals["logger"].info(f"Dialog query: {speaker=}, {content=}")
+    globals["logger"].info(f"Talk: {speaker=}, {content=}")
     speaker = speaker.strip()
     content = content.strip()
     query_lf = talk_data[lang]
@@ -323,7 +330,7 @@ def query_text_keyword(
             utils.build_alert("error", ui["ALERT_SAME_LANG"][lang]),
             globals["cache_header"],
         )
-    globals["logger"].info(f"Text query: {key=}, {value=}")
+    globals["logger"].info(f"Text: {key=}, {value=}")
     key = key.strip()
     value = value.strip()
     query_lf = text_data[target_lang]

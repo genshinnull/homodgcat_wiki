@@ -2,9 +2,25 @@ from fasthtml.common import *
 from monsterui.all import *
 
 
-def build_text_langs(lang: str, ui: dict, langs: list[str]):
+def build_text_langs(
+    lang: str,
+    ui: dict,
+    langs: list[str],
+    ui_key: str = "QUERY_TEXT",
+    optional_comp: bool = True,
+):
     target_langs = langs.copy()
     target_langs.remove(lang)
+    comp_options = [
+        Option(
+            ui["LANG"][_lang],
+            value=_lang,
+            selected=not optional_comp and _lang == target_langs[0],
+        )
+        for _lang in langs
+    ]
+    if optional_comp:
+        comp_options.insert(0, Option("-", value="", selected=True))
     return (
         LabelSelect(
             Option(
@@ -13,13 +29,12 @@ def build_text_langs(lang: str, ui: dict, langs: list[str]):
                 selected=True,
             ),
             *[Option(ui["LANG"][_lang], value=_lang) for _lang in target_langs],
-            label=ui["QUERY_TEXT_TARGET_LANG"][lang],
+            label=ui[f"{ui_key}_TARGET_LANG"][lang],
             id="target_lang",
         ),
         LabelSelect(
-            Option("-", value="", selected=True),
-            *[Option(ui["LANG"][_lang], value=_lang) for _lang in langs],
-            label=ui["QUERY_TEXT_COMP_LANG"][lang],
+            *comp_options,
+            label=ui[f"{ui_key}_COMP_LANG"][lang],
             id="comp_lang",
         ),
     )
@@ -69,8 +84,6 @@ def build_text_versions(lang: str, ui: dict, versions: list[str]):
 
 
 def build_term_query(lang: str, ui: dict, langs: list[str]):
-    target_langs = langs.copy()
-    target_langs.remove(lang)
     return (
         Form(
             Grid(
@@ -89,19 +102,13 @@ def build_term_query(lang: str, ui: dict, langs: list[str]):
                         " then send getTerms"
                     ),
                 ),
-                LabelSelect(
-                    Option(
-                        ui["LANG"][target_langs[0]],
-                        value=target_langs[0],
-                        selected=True,
+                Grid(
+                    *build_text_langs(
+                        lang, ui, langs, "QUERY_TERM", optional_comp=False
                     ),
-                    *[
-                        Option(ui["LANG"][_lang], value=_lang)
-                        for _lang in target_langs[1:]
-                    ],
-                    label=ui["QUERY_TERM_TARGET_LANG"][lang],
-                    id="target_lang",
+                    cols=2,
                 ),
+                cols=1,
             ),
             onsubmit="return false",
             cls="space-y-5",

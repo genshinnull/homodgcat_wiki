@@ -60,7 +60,7 @@
     "EN": "Talk"
   },
   "QUERY_TAB_TERM": {
-    "CHS": "术语",
+    "CHS": "名词",
     "EN": "Term"
   },
   "QUERY_TAB_TEXT": {
@@ -87,9 +87,13 @@
     "CHS": "精确匹配 - 用 <> 括住搜索词",
     "EN": "Exact match - surround search term with <>"
   },
+  "QUERY_TERM_COMP_LANG": {
+    "CHS": "对比语言",
+    "EN": "Comp Language"
+  },
   "QUERY_TERM_PLACEHOLDER": {
-    "CHS": "翻译游戏术语",
-    "EN": "Translate in-game terminology"
+    "CHS": "游戏名词",
+    "EN": "In-game term"
   },
   "QUERY_TERM_QUERY": {
     "CHS": "查询",

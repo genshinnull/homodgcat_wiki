@@ -6,7 +6,7 @@ import utils
 WIKI_BASE_URL = "https://genshin-impact.fandom.com/wiki/{}"
 
 
-def build_results(pairs: dict, q: str, lang: str, target_lang: str):
+def build_results(pairs: dict, target_lang: str, comp_lang: str):
     results = []
     for pair in pairs:
         results.append(
@@ -17,8 +17,8 @@ def build_results(pairs: dict, q: str, lang: str, target_lang: str):
                         cls=(TextT.meta, "justify-self-start"),
                     ),
                     Div(
-                        utils.build_text(pair[lang]),
-                        P(pair[target_lang]),
+                        utils.build_text(pair[target_lang]),
+                        P(pair[comp_lang]) if comp_lang else None,
                         cls="text-center",
                     ),
                     A(
