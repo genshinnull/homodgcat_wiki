@@ -95,7 +95,7 @@ app = FastHTML(
         fasthtml.core.fhjsscr,
         fasthtml.charset,
         Script(
-            src="https://cdn.jsdelivr.net/npm/hyperscript.org@0.9.91/dist/_hyperscript.min.js"
+            src="https://cdn.jsdelivr.net/npm/hyperscript.org@0.9.93/dist/_hyperscript.min.js"
         ),
     ],
     lifespan=lifespan,
